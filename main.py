@@ -4,11 +4,17 @@ import numpy as np
 import cv2
 import tkinter as tk
 from turtle import Turtle
-from PIL import ImageGrab
+from PIL import ImageGrab, Image
 
+SEG_LENGTH = 10
+WIDTH = 800
+HEIGHT = 800
+TARGET_BOUNDS = (1024, 1024)
 
 def setTurtle(alpha_zero):
     r_turtle = turtle.Turtle()  # recursive turtle
+    turtle.tracer(0, 0)
+    r_turtle.hideturtle()
     r_turtle.screen.title("L-System Derivation")
     r_turtle.pu()
     r_turtle.setposition(0, 350)
@@ -24,10 +30,10 @@ def drawSystem(system: LSystem, r_turtle: Turtle):
     for symbol in system.system[system_len-1]:
         r_turtle.pd()
         if symbol == "F":
-            r_turtle.forward(20)
+            r_turtle.forward(SEG_LENGTH)
         elif symbol == "f":
             r_turtle.pu()
-            r_turtle.forward(20)
+            r_turtle.forward(SEG_LENGTH)
         elif symbol == "+":
             r_turtle.right(20)
         elif symbol == "-":
@@ -80,10 +86,32 @@ if __name__ == "__main__":
     turtle_screen.screensize(500, 500)
     drawSystem(Plant, r_turtle)
     
-    save_file(turtle_screen, turtle_screen.getcanvas(), "plant.png")
-    
-    turtle_screen.exitonclick()
+    turtle_screen.getcanvas().postscript(file="plant.eps")
 
-    image = cv2.imread("plant.eps")
-    white_area = np.sum(image)
+    #save_file(turtle_screen, turtle_screen.getcanvas(), "plant.png")
+    
+    #turtle_screen.exitonclick()
+
+    pic = Image.open("plant.eps")
+    pic.load(scale=10)
+
+    pic = pic.convert("RGBA")
+
+    # Calculate the new size, preserving the aspect ratio
+    ratio = min(TARGET_BOUNDS[0] / pic.size[0],
+            TARGET_BOUNDS[1] / pic.size[1])
+    new_size = (int(pic.size[0] * ratio), int(pic.size[1] * ratio))
+
+    # Resize to fit the target size
+    pic = pic.resize(new_size, Image.LANCZOS)
+
+    # Save to PNG
+    pic.save("plant.png")
+
+    img = cv2.imread("plant.png")
+
+    white_area = np.sum(img)
+    img_inverse = cv2.bitwise_not(img)
+    black_area = np.sum(img_inverse)
     print(white_area)
+    print(black_area)
