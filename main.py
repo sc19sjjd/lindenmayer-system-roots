@@ -75,11 +75,13 @@ Plant = LSystem(
 )
 
 CPlant = ComplexLSystem(
-    variables="F(l,w)".split(),
+    variables="F(l,w) A(l,w) B(l,w) C(l,w)".split(),
     constants="[ ] + -".split(),
-    axiom="F(20,5)",
+    axiom="A(1,10)",
     rules={
-        "F(l,w)": "F(l,w)[+F(l,w)][-F(l,w)]F(l,w)"
+        "A(l,w)": "F(l,w)[&B(l*e,w*h)]/A(l*b,w*h)",
+        "B(l,w)": "F(l,w)[-$C(l*e,w*h)]C(l*b,w*h)",
+        "C(l,w)": "F(l,w)[+$B(l*e,w*h)]B(l*b,w*h)"
     }
 )
 
