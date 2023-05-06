@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "lindenmayer-system-roots"
+version = "0.1.0"
+description = "Lindemayer system with genetic algorithm to generate root systems"
+authors = ["sc19sjjd <sc19sjjd@leeds.ac.uk>"]
+readme = "README.md"
+packages = [{include = "lindenmayer_system_roots"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+LindenmayerSystem = "^1.0.0"
+Pillow = "^9.5.0"
+pygad = "^3.0.1"
+opencv-python = "^4.7.0.72"
+numpy = "^1.24.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
