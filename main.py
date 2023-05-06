@@ -1,4 +1,4 @@
-from LindenmayerSystem import LSystem
+from LSystem import LSystem, ComplexLSystem
 import turtle
 import numpy as np
 import cv2
@@ -6,7 +6,10 @@ import tkinter as tk
 from turtle import Turtle
 from PIL import ImageGrab, Image
 
-SEG_LENGTH = 10
+SEG_LENGTH = 20
+ANGLE = 35
+THICKNESS_SCALE = 1.75
+BASE_THICKNESS = 6.0
 WIDTH = 800
 HEIGHT = 800
 TARGET_BOUNDS = (1024, 1024)
@@ -16,6 +19,7 @@ def setTurtle(alpha_zero):
     turtle.tracer(0, 0)
     r_turtle.hideturtle()
     r_turtle.screen.title("L-System Derivation")
+    r_turtle.pensize(BASE_THICKNESS)
     r_turtle.pu()
     r_turtle.setposition(0, 350)
     r_turtle.speed("fastest")  # adjust as needed (0 = fastest)
@@ -24,9 +28,9 @@ def setTurtle(alpha_zero):
 
 
 def drawSystem(system: LSystem, r_turtle: Turtle):
-    turtle.tracer(0, 0)
     stack = []
     system_len = len(system.system)
+    curr_width = BASE_THICKNESS
     for symbol in system.system[system_len-1]:
         r_turtle.pd()
         if symbol == "F":
@@ -35,60 +39,65 @@ def drawSystem(system: LSystem, r_turtle: Turtle):
             r_turtle.pu()
             r_turtle.forward(SEG_LENGTH)
         elif symbol == "+":
-            r_turtle.right(20)
+            r_turtle.right(ANGLE)
         elif symbol == "-":
-            r_turtle.left(20)
+            r_turtle.left(ANGLE)
+        elif symbol == "!":
+            width = width * THICKNESS_SCALE
+            r_turtle.pensize(width)
+        elif symbol == "?":
+            width = width / THICKNESS_SCALE
+            r_turtle.pensize(width) 
         elif symbol == "[":
-            stack.append((r_turtle.position(), r_turtle.heading()))
+            stack.append((
+                r_turtle.position(), 
+                r_turtle.heading(),
+                curr_width,
+            ))
+            curr_width = curr_width / THICKNESS_SCALE
         elif symbol == "]":
             r_turtle.pu()
-            position, heading = stack.pop()
+            position, heading, curr_width = stack.pop()
             r_turtle.goto(position)
             r_turtle.setheading(heading)
+            r_turtle.pensize(curr_width)
 
     turtle.update()
 
 
-def getter(root, widget):
-    x = root.winfo_rootx() + widget.winfo_x()
-    y = root.winfo_rooty() + widget.winfo_y()
-    x1 = x + widget.winfo_width()
-    y1 = y + widget.winfo_height()
-    return ImageGrab.grab().crop((x, y, x1, y1))
-
-def save_file(root, canvas, filename):
-    """ Convert the Canvas widget into a bitmapped image. """
-    # Get image of Canvas and convert it to bitmapped image.
-    img = getter(root, canvas).convert('L').convert('1')
-    img.save(filename)  # Save image file.
-
-
 Plant = LSystem(
     variables="F".split(),
-    constants="[ ] + -".split(),
+    constants="[ ] + - ! ?".split(),
     axiom="F",
     rules={
         "F": "F[+F]F[-F]F"
     }
 )
 
-if __name__ == "__main__":
-    print(Plant)
+CPlant = ComplexLSystem(
+    variables="F(l,w)".split(),
+    constants="[ ] + -".split(),
+    axiom="F(20,5)",
+    rules={
+        "F(l,w)": "F(l,w)[+F(l,w)][-F(l,w)]F(l,w)"
+    }
+)
 
+if __name__ == "__main__":
+    print(CPlant.parsed_variables)
+    print(CPlant.parsed_rules)
+
+    """
     for i in range(3):
         Plant.iterate()
-        print(Plant)
+        #print(Plant)
 
-
-    #root = tk.Tk()
     r_turtle = setTurtle(270)
     turtle_screen = turtle.Screen()
-    turtle_screen.screensize(500, 500)
+    turtle_screen.screensize(WIDTH, HEIGHT)
     drawSystem(Plant, r_turtle)
     
     turtle_screen.getcanvas().postscript(file="plant.eps")
-
-    #save_file(turtle_screen, turtle_screen.getcanvas(), "plant.png")
     
     #turtle_screen.exitonclick()
 
@@ -114,4 +123,4 @@ if __name__ == "__main__":
     img_inverse = cv2.bitwise_not(img)
     black_area = np.sum(img_inverse)
     print(white_area)
-    print(black_area)
+    print(black_area) """
