@@ -6,39 +6,46 @@ import tkinter as tk
 from turtle import Turtle
 from PIL import ImageGrab
 
-
-def setTurtle(alpha_zero):
-    r_turtle = turtle.Turtle()  # recursive turtle
-    r_turtle.screen.title("L-System Derivation")
-    r_turtle.pu()
-    r_turtle.setposition(0, 350)
-    r_turtle.speed("fastest")  # adjust as needed (0 = fastest)
-    r_turtle.setheading(alpha_zero)  # initial heading
-    return r_turtle
+WIDTH = 800
+HEIGHT = 800
+IMG_FILENAME = "plant.png"
 
 
-def drawSystem(system: LSystem, r_turtle: Turtle):
+def setTurtle(alpha_zero, screen):
+    t = turtle.RawTurtle(screen.getcanvas())  # recursive turtle
+    t.pu()
+    t.setposition(0, 350)
+    t.speed("fastest")  # adjust as needed (0 = fastest)
+    t.setheading(alpha_zero)  # initial heading
+    return t
+
+
+def drawSystem(system: LSystem, canvas):
+    turtle_screen = turtle.TurtleScreen(canvas)
+    t = setTurtle(270, turtle_screen)
+    t.hideturtle()
     turtle.tracer(0, 0)
+
     stack = []
     system_len = len(system.system)
     for symbol in system.system[system_len-1]:
-        r_turtle.pd()
+        t.pd()
         if symbol == "F":
-            r_turtle.forward(20)
+            t.forward(20)
         elif symbol == "f":
-            r_turtle.pu()
-            r_turtle.forward(20)
+            t.pu()
+            t.forward(20)
         elif symbol == "+":
-            r_turtle.right(20)
+            t.right(20)
         elif symbol == "-":
-            r_turtle.left(20)
+            t.left(20)
         elif symbol == "[":
-            stack.append((r_turtle.position(), r_turtle.heading()))
+            stack.append((t.position(), t.heading()))
         elif symbol == "]":
-            r_turtle.pu()
+            t.pu()
             position, heading = stack.pop()
-            r_turtle.goto(position)
-            r_turtle.setheading(heading)
+            t.goto(position)
+            t.setheading(heading)
 
     turtle.update()
 
@@ -48,7 +55,7 @@ def getter(root, widget):
     y = root.winfo_rooty() + widget.winfo_y()
     x1 = x + widget.winfo_width()
     y1 = y + widget.winfo_height()
-    return ImageGrab.grab().crop((x, y, x1, y1))
+    return ImageGrab.grab(xdisplay=":0").crop((x, y, x1, y1))
 
 def save_file(root, canvas, filename):
     """ Convert the Canvas widget into a bitmapped image. """
@@ -73,17 +80,15 @@ if __name__ == "__main__":
         Plant.iterate()
         print(Plant)
 
-
-    #root = tk.Tk()
-    r_turtle = setTurtle(270)
-    turtle_screen = turtle.Screen()
-    turtle_screen.screensize(500, 500)
-    drawSystem(Plant, r_turtle)
+    root = tk.Tk()
+    canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT,
+                   borderwidth=0, highlightthickness=0)
+    canvas.pack()
     
-    save_file(turtle_screen, turtle_screen.getcanvas(), "plant.png")
+    drawSystem(Plant, canvas)
     
-    turtle_screen.exitonclick()
+    save_file(root, canvas, IMG_FILENAME)
 
-    image = cv2.imread("plant.eps")
+    image = cv2.imread("plant.png")
     white_area = np.sum(image)
     print(white_area)
