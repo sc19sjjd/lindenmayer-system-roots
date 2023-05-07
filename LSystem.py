@@ -30,14 +30,9 @@ def parseVariable(v: str, globals: dict={}) -> list:
 
 def parseSentence(s: str, variables: list, globals: dict={}) -> list:
     sentence = []
-    consts = ""
     i = 0
     while i < len(s):
-        if s[i] in variables:
-            if consts != "":
-                sentence.append([consts])
-                consts = ""
-            
+        if s[i] in variables:            
             var_end = s.find(')', i)
             var = parseVariable(s[i:var_end+1], globals)
             sentence.append(var)
@@ -45,7 +40,7 @@ def parseSentence(s: str, variables: list, globals: dict={}) -> list:
             i = var_end
 
         else: 
-            consts += s[i]
+            sentence.append([s[i]])
 
         i += 1
 
@@ -133,6 +128,10 @@ class ParamLSystem():
             p_next = []
             for substr in p_current:
                 if len(substr) > 1:
+                    if not substr[0] in self.parsed_rules.keys():
+                        p_next.append(substr)
+                        continue
+
                     rule = self.parsed_rules[substr[0]]
                     globals = {}
                     i = 1
@@ -144,7 +143,7 @@ class ParamLSystem():
                     p_next.extend(self.__applyRule(rule, globals))
 
                 else:
-                    p_next.extend(substr)
+                    p_next.append(substr)
 
             #print(f"p_next: {p_next}")
             self.parsed_system.append(p_next)
