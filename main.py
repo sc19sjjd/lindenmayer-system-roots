@@ -26,8 +26,8 @@ Plant = LSystem(
 
 # monopodial tree from:
 # https://www.houdinikitchen.net/wp-content/uploads/2019/12/L-systems.pdf
-CPlant = ParamLSystem(
-    variables="F(l,w) A(l,w) B(l,w) C(l,w)".split(),
+MonoTree = ParamLSystem(
+    variables="F(l,w) A(l,w) B(l,w) C(l,w) +(c) -(c) T(t)".split(),
     constants={
         'b': 0.9,
         'c': 45,
@@ -35,12 +35,32 @@ CPlant = ParamLSystem(
         'e': 0.6,
         'h': 0.707,
         'i': 137.5,
+        't': 0.7,
     },
-    axiom="A(90,12)",
+    axiom="A(90,20)",
     rules={
-        "A(l,w)": "F(l,w)[&B(l*e,w*h)]/A(l*b,w*h)",
-        "B(l,w)": "F(l,w)[-$C(l*e,w*h)]C(l*b,w*h)",
-        "C(l,w)": "F(l,w)[+$B(l*e,w*h)]B(l*b,w*h)",
+        "A(l,w)": "T(0.8*l*t)F(l,w)([&B(l*e,w*h)]/A(l*b,w*h)",
+        "B(l,w)": "T(0.8*l*t)F(l,w)[-(c)$C(l*e,w*h)]C(l*b,w*h)",
+        "C(l,w)": "T(0.8*l*t)F(l,w)[+(d)$B(l*e,w*h)]B(l*b,w*h)",
+    }
+)
+
+# Sympodial tree from same source
+SympoTree = ParamLSystem(
+    variables="F(l,w) A(l,w) B(l,w) +(c) -(c)".split(),
+    constants={
+        'b': 0.9,
+        'c': 35,
+        'd': 35,
+        'e': 0.8,
+        'h': 0.707,
+        'i': 137.5,
+        't': 0.7
+    },
+    axiom="A(90,15)",
+    rules={
+        "A(l,w)": "F(l,w)[&B(l*b,w*h)]/[B(l*e,w*h)]",
+        "B(l,w)": "F(l,w)[+(c)$B(l*b,w*h)][-(d)B(l*e,w*h)]",
     }
 )
 
@@ -49,13 +69,13 @@ if __name__ == "__main__":
     #print(CPlant.parsed_rules)
 
     #print(CPlant.parsed_system)
-    CPlant.iterate(12)
-    print(CPlant.parsed_system[4])
+    MonoTree.iterate(12)
+    #print(CPlant.parsed_system[4])
 
     r_turtle = setTurtle(90)
     turtle_screen = turtle.Screen()
     turtle_screen.screensize(WIDTH, HEIGHT)
-    drawParamSystem(CPlant, r_turtle)
+    drawParamSystem(MonoTree, r_turtle)
     
     turtle_screen.getcanvas().postscript(file="tree.eps")
 
