@@ -82,7 +82,8 @@ def parsedSentenceToString(ps: str) -> str:
 
     return s
 
-class ComplexLSystem():
+
+class ParamLSystem():
     def __init__(self, variables, constants, axiom, rules, iterations=0):
         
         self.parsed_variables = []
@@ -93,33 +94,61 @@ class ComplexLSystem():
             self.variables.append(p_var[0])
 
         self.parsed_axiom = parseSentence(axiom, self.variables)
-        self.parsed_system = [self.parsed_axiom]
         self.parsed_rules = parseRules(rules, self.variables)
-
+        self.parsed_system = [self.parsed_axiom]
+        
         self.constants = constants
         self.axiom = axiom
         self.rules = rules
         self.system = [self.axiom]
+        
         for i in range(iterations):
             self.iterate()
 
     def __repr__(self):
         return str(self.system)
+    
+    def __applyRule(self, rule: str, globals: dict) -> list:
+        res = []
+        #print(f"globals: {globals}")
+        for substr in rule[1]:
+            if len(substr) >  1:
+                #print(f"substr: {substr}")
+                new_var = [substr[0]]
+                for param in substr[1:]:
+                    #print(f"param: {param}")
+                    new_var.append(str(eval(param, globals)))
+                    #print(f"new_var:  {new_var}")
 
-    def iterate(self, iterations=1):
+                res.append(new_var)
+            else:
+                res.append(substr)
+
+        return res
+
+    def iterate(self, iterations: int=1):
         for i in range(iterations):
-            nxt = self.system[-1]
-            rep={} # replacements
-            count=1
-            for var in self.rules.keys():
-                repstr = str(chr(count))
-                nxt=repstr.join( nxt.split(var) )
-                rep[repstr] = var
-                count=count+1
-            for var in rep.keys():
-                nxt = self.rules[rep[var]].join(nxt.split(var))
+            p_current = self.parsed_system[-1]
 
-            self.system.append(nxt)
+            p_next = []
+            for substr in p_current:
+                if len(substr) > 1:
+                    rule = self.parsed_rules[substr[0]]
+                    globals = {}
+                    i = 1
+                    for gvar in rule[0]:
+                        globals[gvar] = float(substr[i])
+                        i += 1
+
+                    globals = globals | self.constants
+                    p_next.extend(self.__applyRule(rule, globals))
+
+                else:
+                    p_next.extend(substr)
+
+            #print(f"p_next: {p_next}")
+            self.parsed_system.append(p_next)
+            self.system.append(parsedSentenceToString(p_next))
 
 
 class LSystem:

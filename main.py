@@ -1,4 +1,4 @@
-from LSystem import LSystem, ComplexLSystem
+from LSystem import LSystem, ParamLSystem
 import turtle
 import numpy as np
 import cv2
@@ -74,20 +74,33 @@ Plant = LSystem(
     }
 )
 
-CPlant = ComplexLSystem(
+# monopodial tree from:
+# https://www.houdinikitchen.net/wp-content/uploads/2019/12/L-systems.pdf
+CPlant = ParamLSystem(
     variables="F(l,w) A(l,w) B(l,w) C(l,w)".split(),
-    constants="[ ] + -".split(),
+    constants={
+        'b': 0.9,
+        'c': 45,
+        'd': 45,
+        'e': 0.6,
+        'h': 0.707,
+        'i': 137.5,
+    },
     axiom="A(1,10)",
     rules={
         "A(l,w)": "F(l,w)[&B(l*e,w*h)]/A(l*b,w*h)",
         "B(l,w)": "F(l,w)[-$C(l*e,w*h)]C(l*b,w*h)",
-        "C(l,w)": "F(l,w)[+$B(l*e,w*h)]B(l*b,w*h)"
+        "C(l,w)": "F(l,w)[+$B(l*e,w*h)]B(l*b,w*h)",
     }
 )
 
 if __name__ == "__main__":
     print(CPlant.parsed_variables)
     print(CPlant.parsed_rules)
+
+    print(CPlant.parsed_system)
+    CPlant.iterate()
+    print(CPlant.parsed_system)
 
     """
     for i in range(3):
