@@ -60,54 +60,68 @@ MonoTree = ParamLSystem(
     variables="F(l,w) A(l,w) B(l,w) C(l,w) +(c) -(c) T(t)".split(),
     constants={
         'b': 0.9,
-        'c': 45,
-        'd': 45,
+        'c': 55,
+        'd': 55,
         'e': 0.6,
         'h': 0.707,
         'i': 137.5,
-        't': 0.7,
+        't': 0.08,
     },
     axiom="A(90,20)",
     rules={
-        "A(l,w)": "T(0.5*l*t)F(l,w)([&B(l*e,w*h)]/A(l*b,w*h)",
-        "B(l,w)": "T(0.5*l*t)F(l,w)[-(c)$C(l*e,w*h)]C(l*b,w*h)",
-        "C(l,w)": "T(0.5*l*t)F(l,w)[+(d)$B(l*e,w*h)]B(l*b,w*h)",
+        "A(l,w)": "T(l*w*t)F(l,w)([&B(l*e,w*h)]/A(l*b,w*h)",
+        "B(l,w)": "T(l*w*t)F(l,w)[-(c)$C(l*e,w*h)]C(l*b,w*h)",
+        "C(l,w)": "T(l*w*t)F(l,w)[+(d)$B(l*e,w*h)]B(l*b,w*h)",
     }
 )
 
-# Sympodial tree from same source
-SympoTree = ParamLSystem(
-    variables="F(l,w) A(l,w) B(l,w) +(c) -(c)".split(),
+
+Roots = ParamLSystem(
+    variables="F(l,w) A(l,w) B(l,w) C(l,w) D(l,w) E(l,w) +(c) -(c) T(t) P(l,w)".split(),
     constants={
         'b': 0.9,
-        'c': 35,
-        'd': 35,
-        'e': 0.8,
-        'h': 0.707,
+        'c': 40,
+        'd': 60,
+        'e': 0.2,
+        'g': 0.75,
+        'f': 0.85,
+        'h': 0.55,
         'i': 137.5,
-        't': 0.7
     },
-    axiom="A(90,15)",
+    axiom="[-(80)A(50,20)][-(51)A(50,20)][-(12)A(50,20)][+(14)A(50,20)][+(45)A(50,20)][+(83)A(50,20)]",
     rules={
-        "A(l,w)": "F(l,w)[&B(l*b,w*h)]/[B(l*e,w*h)]",
-        "B(l,w)": "F(l,w)[+(c)$B(l*b,w*h)][-(d)B(l*e,w*h)]",
+        "P(l,w)": "T(w*0.5)F(l/2,w)+(40)-(40)[-(c)C(l*e,w*h)]F(l/2,w)+(40)-(40)[+(c)C(l*e,w*h)]",
+        "A(l,w)": "T(w*0.1)P(l,w)P(l,w)A(l*b,w*f)",
+        "C(l,w)": "T(w*0.1)F(l,w)A(l*b,w*f)",
     }
 )
+
+#ignore this, was the original attempt at roots, kept for reference purposes
+"""    "A(l,w)": "T(l*w*t*0.2)F(l,w)[-(c)C(l*e,w*h)]+(15)-(15)B(l*b,w*f)",
+        "B(l,w)": "T(l*w*t*0.2)F(l,w)[+(c)C(l*e,w*h)]+(15)-(15)A(l*b,w*f)",
+        "C(l,w)": "T(l*w*t)F(l,w)[D(l*g,w*h)]+(25)-(25)C(l*b,w*f)",
+        "D(l,w)": "T(l*w*t)F(l,w)[-(d)E(l*e,w*h)]E(l*b,w*f)",
+        "E(l,w)": "T(l*w*t)F(l,w)[+(d)D(l*e,w*h)]D(l*b,w*f)",
+        "F(l,w)": "F(l*0.6,w)T(l*w*t*0.01)F(l*0.6,w)"
+    }"""
+
+
 
 if __name__ == "__main__":
     #print(CPlant.parsed_variables)
     #print(CPlant.parsed_rules)
-
     #print(CPlant.parsed_system)
-    MonoTree.iterate(12)
+    #MonoTree.iterate(10)
     #print(CPlant.parsed_system[4])
 
-    r_turtle = setTurtle(90)
+    Roots.iterate(12)
+
+    r_turtle = setTurtle(270, (0, 350))
     turtle_screen = turtle.Screen()
     turtle_screen.screensize(WIDTH, HEIGHT)
-    drawParamSystem(MonoTree, r_turtle)
+    drawParamSystem(Roots, r_turtle)
     
-    saveTurtleImage(turtle_screen, "tree")
+    saveTurtleImage(turtle_screen, "roots")
     #calcSurfaceArea("tree")
 
     turtle_screen.exitonclick()

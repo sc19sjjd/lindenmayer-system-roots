@@ -14,7 +14,7 @@ HEIGHT = 800
 TARGET_BOUNDS = (1024, 1024)
 T_HEADING = np.array([0, -1])
 ANGLE_DEVIATION_FACTOR = 0.1
-LENGTH_DEVIATION_FACTOR = 0.075
+LENGTH_DEVIATION_FACTOR = 0.2
 
 # convert angle in degrees to unit vector heading direction
 def getVectorHeading(degrees):
@@ -28,14 +28,14 @@ def getVectorHeading(degrees):
 def getCross(v1, v2):
     return np.cross(v1, v2)
 
-def setTurtle(alpha_zero):
+def setTurtle(alpha_zero, start_pos):
     t = turtle.Turtle()  # recursive turtle
     turtle.tracer(0, 0)
     t.hideturtle()
     t.screen.title("L-System Derivation")
     t.pensize(BASE_THICKNESS)
     t.pu()
-    t.setposition(0, -350)
+    t.setposition(start_pos)
     t.speed("fastest")  # adjust as needed (0 = fastest)
     t.setheading(alpha_zero)  # initial heading
     return t
