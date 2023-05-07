@@ -15,6 +15,36 @@ WIDTH = 800
 HEIGHT = 800
 TARGET_BOUNDS = (1024, 1024)
 
+def saveTurtleImage(screen, filename):
+    screen.getcanvas().postscript(file=filename+".eps")
+
+    pic = Image.open(filename+".eps")
+    pic.load(scale=10)
+
+    pic = pic.convert("RGBA")
+
+    # Calculate the new size, preserving the aspect ratio
+    ratio = min(TARGET_BOUNDS[0] / pic.size[0],
+            TARGET_BOUNDS[1] / pic.size[1])
+    new_size = (int(pic.size[0] * ratio), int(pic.size[1] * ratio))
+
+    # Resize to fit the target size
+    pic = pic.resize(new_size, Image.LANCZOS)
+
+    # Save to PNG
+    pic.save(filename+".png")
+
+
+def calcSurfaceArea(filename):
+    img = cv2.imread(filename+".png")
+
+    white_area = np.sum(img)
+    img_inverse = cv2.bitwise_not(img)
+    black_area = np.sum(img_inverse)
+    print(white_area)
+    print(black_area)
+
+
 Plant = LSystem(
     variables="F".split(),
     constants="[ ] + - ! ?".split(),
@@ -39,9 +69,9 @@ MonoTree = ParamLSystem(
     },
     axiom="A(90,20)",
     rules={
-        "A(l,w)": "T(0.8*l*t)F(l,w)([&B(l*e,w*h)]/A(l*b,w*h)",
-        "B(l,w)": "T(0.8*l*t)F(l,w)[-(c)$C(l*e,w*h)]C(l*b,w*h)",
-        "C(l,w)": "T(0.8*l*t)F(l,w)[+(d)$B(l*e,w*h)]B(l*b,w*h)",
+        "A(l,w)": "T(0.5*l*t)F(l,w)([&B(l*e,w*h)]/A(l*b,w*h)",
+        "B(l,w)": "T(0.5*l*t)F(l,w)[-(c)$C(l*e,w*h)]C(l*b,w*h)",
+        "C(l,w)": "T(0.5*l*t)F(l,w)[+(d)$B(l*e,w*h)]B(l*b,w*h)",
     }
 )
 
@@ -77,69 +107,7 @@ if __name__ == "__main__":
     turtle_screen.screensize(WIDTH, HEIGHT)
     drawParamSystem(MonoTree, r_turtle)
     
-    turtle_screen.getcanvas().postscript(file="tree.eps")
-
-    pic = Image.open("tree.eps")
-    pic.load(scale=10)
-
-    pic = pic.convert("RGBA")
-
-    # Calculate the new size, preserving the aspect ratio
-    ratio = min(TARGET_BOUNDS[0] / pic.size[0],
-            TARGET_BOUNDS[1] / pic.size[1])
-    new_size = (int(pic.size[0] * ratio), int(pic.size[1] * ratio))
-
-    # Resize to fit the target size
-    pic = pic.resize(new_size, Image.LANCZOS)
-
-    # Save to PNG
-    pic.save("tree.png")
-
-    img = cv2.imread("tree.png")
-
-    white_area = np.sum(img)
-    img_inverse = cv2.bitwise_not(img)
-    black_area = np.sum(img_inverse)
-    print(white_area)
-    print(black_area)
+    saveTurtleImage(turtle_screen, "tree")
+    #calcSurfaceArea("tree")
 
     turtle_screen.exitonclick()
-    #
-
-    """
-    for i in range(3):
-        Plant.iterate()
-        #print(Plant)
-
-    r_turtle = setTurtle(270)
-    turtle_screen = turtle.Screen()
-    turtle_screen.screensize(WIDTH, HEIGHT)
-    drawSystem(Plant, r_turtle)
-    
-    turtle_screen.getcanvas().postscript(file="plant.eps")
-    
-    #turtle_screen.exitonclick()
-
-    pic = Image.open("plant.eps")
-    pic.load(scale=10)
-
-    pic = pic.convert("RGBA")
-
-    # Calculate the new size, preserving the aspect ratio
-    ratio = min(TARGET_BOUNDS[0] / pic.size[0],
-            TARGET_BOUNDS[1] / pic.size[1])
-    new_size = (int(pic.size[0] * ratio), int(pic.size[1] * ratio))
-
-    # Resize to fit the target size
-    pic = pic.resize(new_size, Image.LANCZOS)
-
-    # Save to PNG
-    pic.save("plant.png")
-
-    img = cv2.imread("plant.png")
-
-    white_area = np.sum(img)
-    img_inverse = cv2.bitwise_not(img)
-    black_area = np.sum(img_inverse)
-    print(white_area)
-    print(black_area) """

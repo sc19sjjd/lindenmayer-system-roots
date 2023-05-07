@@ -13,6 +13,8 @@ WIDTH = 800
 HEIGHT = 800
 TARGET_BOUNDS = (1024, 1024)
 T_HEADING = np.array([0, -1])
+ANGLE_DEVIATION_FACTOR = 0.1
+LENGTH_DEVIATION_FACTOR = 0.075
 
 # convert angle in degrees to unit vector heading direction
 def getVectorHeading(degrees):
@@ -45,17 +47,25 @@ def drawParamSystem(system: ParamLSystem, t: Turtle):
     for symbol in system.parsed_system[system_len-1]:
         if symbol[0] == "F":
             #print(f"symbol: {symbol}")
+            #generate a random length based on normal distribution
+            l = float(symbol[1])
+            l = np.random.normal(l, l * LENGTH_DEVIATION_FACTOR)
             t.pd()
             t.pensize(float(symbol[2]))
-            t.forward(float(symbol[1]))
+            t.forward(l)
         elif symbol[0] == "+":
             if len(symbol) > 1:
-                t.right(float(symbol[1]))
+                #generate a random angle based on normal distribution
+                a = float(symbol[1])
+                a = np.random.normal(a, a * ANGLE_DEVIATION_FACTOR)
+                t.right(a)
             else:
                 t.right(ANGLE)
         elif symbol[0] == "-":
             if len(symbol) > 1:
-                t.left(float(symbol[1]))
+                a = float(symbol[1])
+                a = np.random.normal(a, a * ANGLE_DEVIATION_FACTOR)
+                t.left(a)
             else:
                 t.left(ANGLE)
         #gravitropism,
