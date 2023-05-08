@@ -4,6 +4,7 @@ import cv2
 import tkinter as tk
 from turtle import Turtle
 from LSystem import *
+from PIL import Image
 
 SEG_LENGTH = 20
 ANGLE = 45
@@ -16,115 +17,181 @@ T_HEADING = np.array([0, -1])
 ANGLE_DEVIATION_FACTOR = 0.1
 LENGTH_DEVIATION_FACTOR = 0.2
 
-# convert angle in degrees to unit vector heading direction
-def getVectorHeading(degrees):
-    radians = np.deg2rad(degrees)
-    heading = np.array([
-        np.cos(radians),
-        np.sin(radians)
-    ])
-    return heading
+class LSystemDrawer():
+    def __init__(
+            self, 
+            alpha_zero=0, 
+            start_position=(0,0),
+            screensize=(800,800),
+            base_thickness=8,
+            thickness_scale=0.75,
+            angle=45,
+            segment_length=25
+        ):
+            self.base_thickness = base_thickness
+            self.thickness_scale = thickness_scale
+            self.angle = angle
+            self.segment_length = segment_length
 
-def getCross(v1, v2):
-    return np.cross(v1, v2)
+            self.turtle = turtle.Turtle()
+            self.setTurtle(alpha_zero, start_position)
+            self.screen = turtle.Screen()
+            self.screen.screensize(screensize[0], screensize[1])
 
-def setTurtle(alpha_zero, start_pos):
-    t = turtle.Turtle()  # recursive turtle
-    turtle.tracer(0, 0)
-    t.hideturtle()
-    t.screen.title("L-System Derivation")
-    t.pensize(BASE_THICKNESS)
-    t.pu()
-    t.setposition(start_pos)
-    t.speed("fastest")  # adjust as needed (0 = fastest)
-    t.setheading(alpha_zero)  # initial heading
-    return t
+    def setTurtle(self, alpha_zero, start_position):
+        turtle.tracer(0, 0)
+        self.turtle.hideturtle()
+        self.turtle.screen.title("L-System Derivation")
+        self.turtle.pu()
+        self.turtle.setposition(start_position)
+        self.turtle.speed("fastest")  # adjust as needed (0 = fastest)
+        self.turtle.setheading(alpha_zero)  # initial heading
+
+    def drawSystem(self, system: LSystem, filename=None):
+        turtle.tracer(0, 0)
+        stack = []
+        system_len = len(system.system)
+        width = self.base_thickness
+        self.turtle.pensize(width)
+        for symbol in system.system[system_len-1]:
+            self.turtle.pd()
+            if symbol == "F":
+                self.turtle.pd()
+                self.turtle.forward(self.segment_length)
+            elif symbol == "f":
+                self.turtle.pu()
+                self.turtle.forward(self.segment_length)
+            elif symbol == "+":
+                self.turtle.right(self.angle)
+            elif symbol == "-":
+                self.turtle.left(self.angle)
+            elif symbol == "!":
+                width = width * self.thickness_scale
+                self.turtle.pensize(width)
+            elif symbol == "?":
+                width = width / self.thickness_scale
+                self.turtle.pensize(width) 
+            elif symbol == "[":
+                stack.append((
+                    self.turtle.position(), 
+                    self.turtle.heading(),
+                ))
+            elif symbol == "]":
+                self.turtle.pu()
+                position, heading = stack.pop()
+                self.turtle.goto(position)
+                self.turtle.setheading(heading)
+
+        turtle.update()
+
+        if filename:
+            self.__saveScreen__(filename)
+        
+        self.screen.exitonclick()
+
+    def __saveScreen__(self, filename):
+        self.screen.getcanvas().postscript(file=filename+".eps")
+
+        img = Image.open(filename+".eps")
+        img.load(scale=10)
+
+        img = img.convert("RGBA")
+
+        # Calculate the new size, preserving the aspect ratio
+        ratio = min(TARGET_BOUNDS[0] / img.size[0],
+                TARGET_BOUNDS[1] / img.size[1])
+        new_size = (int(img.size[0] * ratio), int(img.size[1] * ratio))
+
+        # Resize to fit the target size
+        img = img.resize(new_size, Image.LANCZOS)
+
+        # Save to PNG
+        img.save(filename+".png")
 
 
-def drawParamSystem(system: ParamLSystem, t: Turtle):
-    stack = []
-    system_len = len(system.system)
-    for symbol in system.parsed_system[system_len-1]:
-        if symbol[0] == "F":
-            #print(f"symbol: {symbol}")
-            #generate a random length based on normal distribution
-            l = float(symbol[1])
-            l = np.random.normal(l, l * LENGTH_DEVIATION_FACTOR)
-            t.pd()
-            t.pensize(float(symbol[2]))
-            t.forward(l)
-        elif symbol[0] == "+":
-            if len(symbol) > 1:
-                #generate a random angle based on normal distribution
-                a = float(symbol[1])
-                a = np.random.normal(a, a * ANGLE_DEVIATION_FACTOR)
-                t.right(a)
-            else:
-                t.right(ANGLE)
-        elif symbol[0] == "-":
-            if len(symbol) > 1:
-                a = float(symbol[1])
-                a = np.random.normal(a, a * ANGLE_DEVIATION_FACTOR)
-                t.left(a)
-            else:
-                t.left(ANGLE)
-        #gravitropism,
-        #calculate beta (change in heading angle towards stimulus direction)
-        # beta = e|H * T| where H and T are vectors and e is susceptibility
-        elif symbol[0] == "T":
-            heading = t.heading()
-            v_heading = getVectorHeading(heading)
-            
-            cross_prod = np.cross(v_heading, T_HEADING)
-            beta = float(symbol[1]) * cross_prod
+class ParamLSystemDrawer(LSystemDrawer):
+    def __init__(
+            self, 
+            alpha_zero=0, 
+            start_position=(0,0),
+            screensize=(800,800),
+            t_heading=np.array([0,-1]),
+            angle=45,
+            asdf=0.1, # angle standard deviation factor
+            lsdf=0.2, # legnth standard deviation factor
+        ):
+            self.t_heading=t_heading
+            self.angle = angle
+            self.asdf = asdf
+            self.lsdf = lsdf
 
-            t.setheading(heading + beta)
-        elif symbol[0] == "[":
-            stack.append((
-                t.position(),
-                t.heading(),
-            ))
-        elif symbol[0] == "]":
-            t.pu()
-            position, heading = stack.pop()
-            t.goto(position)
-            t.setheading(heading)
+            self.turtle = turtle.Turtle()
+            self.setTurtle(alpha_zero, start_position)
+            self.screen = turtle.Screen()
+            self.screen.screensize(screensize[0], screensize[1])
 
-    turtle.update()
+    # convert angle in degrees to unit vector heading direction
+    def getVectorHeading(self, degrees):
+        radians = np.deg2rad(degrees)
+        heading = np.array([
+            np.cos(radians),
+            np.sin(radians)
+        ])
+        return heading
 
+    def drawSystem(self, system: ParamLSystem, filename=None):
+        turtle.tracer()
+        stack = []
+        system_len = len(system.system)
+        for symbol in system.parsed_system[system_len-1]:
+            if symbol[0] == "F":
+                #print(f"symbol: {symbol}")
+                #generate a random length based on normal distribution
+                length = float(symbol[1])
+                length = np.random.normal(length, length * self.lsdf)
+                self.turtle.pd()
+                self.turtle.pensize(float(symbol[2]))
+                self.turtle.forward(length)
+            elif symbol[0] == "+":
+                if len(symbol) > 1:
+                    #generate a random angle based on normal distribution
+                    angle = float(symbol[1])
+                    angle = np.random.normal(angle, angle * self.asdf)
+                    self.turtle.right(angle)
+                else:
+                    self.turtle.right(self.angle)
+            elif symbol[0] == "-":
+                if len(symbol) > 1:
+                    angle = float(symbol[1])
+                    angle = np.random.normal(angle, angle * self.asdf)
+                    self.turtle.left(angle)
+                else:
+                    self.turtle.left(self.angle)
+            #gravitropism,
+            #calculate beta (change in heading angle towards stimulus direction)
+            # beta = e|H * T| where H and T are vectors and e is susceptibility
+            elif symbol[0] == "T":
+                heading = self.turtle.heading()
+                v_heading = self.getVectorHeading(heading)
+                
+                cross_prod = np.cross(v_heading, self.t_heading)
+                beta = float(symbol[1]) * cross_prod
 
-def drawSystem(system: LSystem, t: Turtle):
-    turtle.tracer(0, 0)
-    stack = []
-    system_len = len(system.system)
-    width = BASE_THICKNESS
-    for symbol in system.system[system_len-1]:
-        t.pd()
-        if symbol == "F":
-            t.pd()
-            t.forward(SEG_LENGTH)
-        elif symbol == "f":
-            t.pu()
-            t.forward(SEG_LENGTH)
-        elif symbol == "+":
-            t.right(ANGLE)
-        elif symbol == "-":
-            t.left(ANGLE)
-        elif symbol == "!":
-            width = width * THICKNESS_SCALE
-            t.pensize(width)
-        elif symbol == "?":
-            width = width / THICKNESS_SCALE
-            t.pensize(width) 
-        elif symbol == "[":
-            stack.append((
-                t.position(), 
-                t.heading(),
-            ))
-        elif symbol == "]":
-            t.pu()
-            position, heading = stack.pop()
-            t.goto(position)
-            t.setheading(heading)
+                self.turtle.setheading(heading + beta)
+            elif symbol[0] == "[":
+                stack.append((
+                    self.turtle.position(),
+                    self.turtle.heading(),
+                ))
+            elif symbol[0] == "]":
+                self.turtle.pu()
+                position, heading = stack.pop()
+                self.turtle.goto(position)
+                self.turtle.setheading(heading)
 
-    turtle.update()
+        turtle.update()
+
+        if filename:
+            self.__saveScreen__(filename)
+        
+        self.screen.exitonclick()

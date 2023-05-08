@@ -5,7 +5,7 @@ import cv2
 import tkinter as tk
 from turtle import Turtle
 from PIL import ImageGrab, Image
-from systemDrawer import setTurtle, drawSystem, drawParamSystem
+from systemDrawer import *
 
 SEG_LENGTH = 20
 ANGLE = 35
@@ -14,25 +14,6 @@ BASE_THICKNESS = 6.0
 WIDTH = 800
 HEIGHT = 800
 TARGET_BOUNDS = (1024, 1024)
-
-def saveTurtleImage(screen, filename):
-    screen.getcanvas().postscript(file=filename+".eps")
-
-    pic = Image.open(filename+".eps")
-    pic.load(scale=10)
-
-    pic = pic.convert("RGBA")
-
-    # Calculate the new size, preserving the aspect ratio
-    ratio = min(TARGET_BOUNDS[0] / pic.size[0],
-            TARGET_BOUNDS[1] / pic.size[1])
-    new_size = (int(pic.size[0] * ratio), int(pic.size[1] * ratio))
-
-    # Resize to fit the target size
-    pic = pic.resize(new_size, Image.LANCZOS)
-
-    # Save to PNG
-    pic.save(filename+".png")
 
 
 def calcSurfaceArea(filename):
@@ -88,9 +69,9 @@ Roots = ParamLSystem(
         'h': 0.55,
         'i': 137.5,
     },
-    axiom="[-(80)A(50,20)][-(51)A(50,20)][-(12)A(50,20)][+(14)A(50,20)][+(45)A(50,20)][+(83)A(50,20)]",
+    axiom="[-(80)A(50,15)][-(51)A(50,15)][-(12)A(50,15)][+(14)A(50,15)][+(45)A(50,15)][+(83)A(50,15)]",
     rules={
-        "P(l,w)": "T(w*0.5)F(l/2,w)+(40)-(40)[-(c)C(l*e,w*h)]F(l/2,w)+(40)-(40)[+(c)C(l*e,w*h)]",
+        "P(l,w)": "T(w*0.5)F(l/2,w)+(30)-(30)[-(c)C(l*e,w*h)]F(l/2,w)+(30)-(30)[+(c)C(l*e,w*h)]",
         "A(l,w)": "T(w*0.1)P(l,w)P(l,w)A(l*b,w*f)",
         "C(l,w)": "T(w*0.1)F(l,w)A(l*b,w*f)",
     }
@@ -116,12 +97,12 @@ if __name__ == "__main__":
 
     Roots.iterate(12)
 
-    r_turtle = setTurtle(270, (0, 350))
-    turtle_screen = turtle.Screen()
-    turtle_screen.screensize(WIDTH, HEIGHT)
-    drawParamSystem(Roots, r_turtle)
-    
-    saveTurtleImage(turtle_screen, "roots")
-    #calcSurfaceArea("tree")
+    drawer = ParamLSystemDrawer(
+        alpha_zero=270,
+        start_position=(0, 350),
+    )
 
-    turtle_screen.exitonclick()
+    drawer.drawSystem(Roots, "test")
+    #drawer.drawSystem(Roots)
+
+    #calcSurfaceArea("tree")

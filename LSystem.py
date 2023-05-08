@@ -1,8 +1,4 @@
-import re
 
-def findBetween(s, l, r) -> str:
-    result = re.search(f'{l}.*{r}', s)
-    return result
 
 def getArgs(v: str) -> list:
     args = v[2:-1]
