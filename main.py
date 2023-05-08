@@ -6,15 +6,7 @@ import tkinter as tk
 from turtle import Turtle
 from PIL import ImageGrab, Image
 from systemDrawer import *
-
-SEG_LENGTH = 20
-ANGLE = 35
-THICKNESS_SCALE = 1.75
-BASE_THICKNESS = 6.0
-WIDTH = 800
-HEIGHT = 800
-TARGET_BOUNDS = (1024, 1024)
-
+import pygad
 
 def calcSurfaceArea(filename):
     img = cv2.imread(filename+".png")
@@ -22,8 +14,8 @@ def calcSurfaceArea(filename):
     white_area = np.sum(img)
     img_inverse = cv2.bitwise_not(img)
     black_area = np.sum(img_inverse)
-    print(white_area)
-    print(black_area)
+    
+    return black_area
 
 
 Plant = LSystem(
@@ -71,9 +63,9 @@ Roots = ParamLSystem(
     },
     axiom="[-(80)A(50,15)][-(51)A(50,15)][-(12)A(50,15)][+(14)A(50,15)][+(45)A(50,15)][+(83)A(50,15)]",
     rules={
-        "P(l,w)": "T(w*0.5)F(l/2,w)+(30)-(30)[-(c)C(l*e,w*h)]F(l/2,w)+(30)-(30)[+(c)C(l*e,w*h)]",
-        "A(l,w)": "T(w*0.1)P(l,w)P(l,w)A(l*b,w*f)",
-        "C(l,w)": "T(w*0.1)F(l,w)A(l*b,w*f)",
+        "P(l,w)": "T(l*0.15)F(l/2,w)+(30)-(30)[-(c)C(l*e,w*h)]T(l*0.15)F(l/2,w)+(30)-(30)[+(c)C(l*e,w*h)]",
+        "A(l,w)": "P(l,w)P(l,w)A(l*b,w*f)",
+        "C(l,w)": "T(l*0.1)F(l,w)A(l*b,w*f)",
     }
 )
 
@@ -87,22 +79,145 @@ Roots = ParamLSystem(
     }"""
 
 
+def fitness_func(ga_instance, solution, solution_idx):
+    #setup the LSystem Parameters
+    a1, a2, a3, a4, a5 = solution[0:5]
+    l, w = solution[5:7]
+    b, c, e, f, h = solution[7:]
+
+    lsystem = ParamLSystem(
+        variables="F(l,w) A(l,w) C(l,w) +(c) -(c) T(t) P(l,w)".split(),
+        constants={
+            'b': b,
+            'c': c,
+            'e': e,
+            'f': f,
+            'h': h,
+        },
+        axiom=f"[-({a1})A({l},{w})][-({a2})A({l},{w})][-({a3})A({l},{w})][+({a4})A({l},{w})][+({a5})A({l},{w})]",
+        rules={
+            "P(l,w)": "T(l*0.15)F(l/2,w)+(30)-(30)[-(c)C(l*e,w*h)]T(l*0.15)F(l/2,w)+(30)-(30)[+(c)C(l*e,w*h)]",
+            "A(l,w)": "P(l,w)P(l,w)A(l*b,w*f)",
+            "C(l,w)": "T(l*0.1)F(l,w)A(l*b,w*f)",
+        }
+    )
+
+
+    w2 = w + 20
+    lsystem_area = ParamLSystem(
+        variables="F(l,w) A(l,w) C(l,w) +(c) -(c) T(t) P(l,w)".split(),
+        constants={
+            'b': b,
+            'c': c,
+            'e': e,
+            'f': f,
+            'h': h,
+        },
+        axiom=f"[-({a1})A({l},{w2})][-({a2})A({l},{w2})][-({a3})A({l},{w2})][+({a4})A({l},{w2})][+({a5})A({l},{w2})]",
+        rules={
+            "P(l,w)": "T(l*0.15)F(l/2,w)+(30)-(30)[-(c)C(l*e,w*h)]T(l*0.15)F(l/2,w)+(30)-(30)[+(c)C(l*e,w*h)]",
+            "A(l,w)": "P(l,w)P(l,w)A(l*b,w*f)",
+            "C(l,w)": "T(l*0.1)F(l,w)A(l*b,w*f)",
+        }
+    )
+
+    lsystem.iterate(10)
+    lsystem_area.iterate(10)
+
+    drawer = ParamLSystemDrawer(
+        alpha_zero=270,
+        start_position=(0, 340),
+        screensize=(700,700)
+    )
+
+    drawer_area = ParamLSystemDrawer(
+        alpha_zero=270,
+        start_position=(0, 340),
+        screensize=(700,700)
+    )
+
+    drawer.drawSystem(lsystem, f"training/root{solution_idx}", False)
+    drawer_area.drawSystem(lsystem_area, f"training/root_area{solution_idx}", False)
+
+    energy_spent = int(calcSurfaceArea(f"training/root{solution_idx}") / 1000000)
+    area_covered = int(calcSurfaceArea(f"training/root_area{solution_idx}") / 1000000)
+
+    return area_covered - energy_spent
+
+def on_gen(ga_instance):
+    print("Generation : ", ga_instance.generations_completed)
+    print("Fitness of the best solution :", ga_instance.best_solution()[1])
+
+    if ga_instance.generations_completed % 5 == 0:
+        ga_instance.save(filename="ga_instance1")
 
 if __name__ == "__main__":
+    angle_space = {'low': 0, 'high': 180}
+    factor_space = {'low': 0, 'high': 1}
+    gene_space = [
+        angle_space,
+        angle_space,
+        angle_space,
+        angle_space,
+        angle_space,
+        {'low': 5, 'high': 200},
+        {'low': 1, 'high': 50},
+        factor_space,
+        angle_space,
+        factor_space,
+        factor_space,
+        factor_space
+    ]
+
+    num_generations = 20
+    num_parents_mating = 4
+
+    fitness_function = fitness_func
+    on_generation = on_gen
+
+    sol_per_pop = 8
+    num_genes = 12
+
+    parent_selection_type = "sss"
+    keep_parents = 1
+
+    crossover_type = "single_point"
+
+    mutation_type = "adaptive"
+    mutation_probability = (0.3, 0.1)
+
+    ga_instance = pygad.GA(
+        num_generations=num_generations,
+        num_parents_mating=num_parents_mating,
+        fitness_func=fitness_function,
+        sol_per_pop=sol_per_pop,
+        num_genes=num_genes,
+        gene_space=gene_space,
+        parent_selection_type=parent_selection_type,
+        keep_parents=keep_parents,
+        crossover_type=crossover_type,
+        mutation_type=mutation_type,
+        mutation_probability=mutation_probability,
+        on_generation=on_generation
+    )
+
+    ga_instance.run()
+
     #print(CPlant.parsed_variables)
     #print(CPlant.parsed_rules)
     #print(CPlant.parsed_system)
     #MonoTree.iterate(10)
     #print(CPlant.parsed_system[4])
 
-    Roots.iterate(12)
+    #Roots.iterate(12)
 
     drawer = ParamLSystemDrawer(
         alpha_zero=270,
-        start_position=(0, 350),
+        start_position=(0, 340),
+        screensize=(700,700)
     )
 
-    drawer.drawSystem(Roots, "test")
+    #drawer.drawSystem(Roots)
     #drawer.drawSystem(Roots)
 
-    #calcSurfaceArea("tree")
+    #calcSurfaceArea("tree")"""

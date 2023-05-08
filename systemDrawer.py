@@ -12,7 +12,7 @@ THICKNESS_SCALE = 1.75
 BASE_THICKNESS = 6.0
 WIDTH = 800
 HEIGHT = 800
-TARGET_BOUNDS = (1024, 1024)
+TARGET_BOUNDS = (1500, 1500)
 T_HEADING = np.array([0, -1])
 ANGLE_DEVIATION_FACTOR = 0.1
 LENGTH_DEVIATION_FACTOR = 0.2
@@ -34,12 +34,11 @@ class LSystemDrawer():
             self.segment_length = segment_length
 
             self.turtle = turtle.Turtle()
-            self.setTurtle(alpha_zero, start_position)
             self.screen = turtle.Screen()
-            self.screen.screensize(screensize[0], screensize[1])
+            self.screen.setup(screensize[0] + 4, screensize[1] + 8)
+            self.setTurtle(alpha_zero, start_position)
 
     def setTurtle(self, alpha_zero, start_position):
-        turtle.tracer(0, 0)
         self.turtle.hideturtle()
         self.turtle.screen.title("L-System Derivation")
         self.turtle.pu()
@@ -126,9 +125,9 @@ class ParamLSystemDrawer(LSystemDrawer):
             self.lsdf = lsdf
 
             self.turtle = turtle.Turtle()
-            self.setTurtle(alpha_zero, start_position)
             self.screen = turtle.Screen()
-            self.screen.screensize(screensize[0], screensize[1])
+            self.screen.setup(screensize[0] + 4, screensize[1] + 8)
+            self.setTurtle(alpha_zero, start_position)
 
     # convert angle in degrees to unit vector heading direction
     def getVectorHeading(self, degrees):
@@ -139,8 +138,8 @@ class ParamLSystemDrawer(LSystemDrawer):
         ])
         return heading
 
-    def drawSystem(self, system: ParamLSystem, filename=None):
-        turtle.tracer()
+    def drawSystem(self, system: ParamLSystem, filename=None, onClick=True):
+        turtle.tracer(0, 0)
         stack = []
         system_len = len(system.system)
         for symbol in system.parsed_system[system_len-1]:
@@ -194,4 +193,7 @@ class ParamLSystemDrawer(LSystemDrawer):
         if filename:
             self.__saveScreen__(filename)
         
-        self.screen.exitonclick()
+        if onClick:
+            self.screen.exitonclick()
+
+        turtle.clearscreen()
