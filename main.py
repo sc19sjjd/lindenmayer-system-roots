@@ -8,6 +8,7 @@ from PIL import ImageGrab, Image
 from systemDrawer import *
 import pygad
 from GA import *
+import time
 
 Plant = LSystem(
     variables="F".split(),
@@ -20,27 +21,27 @@ Plant = LSystem(
 
 # monopodial tree from:
 # https://www.houdinikitchen.net/wp-content/uploads/2019/12/L-systems.pdf
-MonoTree = ParamLSystem(
-    variables="F(l,w) A(l,w) B(l,w) C(l,w) +(c) -(c) T(t)".split(),
-    constants={
-        'b': 0.9,
-        'c': 55,
-        'd': 55,
-        'e': 0.6,
-        'h': 0.707,
-        'i': 137.5,
-        't': 0.08,
-    },
-    axiom="A(90,20)",
-    rules={
-        "A(l,w)": "T(l*w*t)F(l,w)([&B(l*e,w*h)]/A(l*b,w*h)",
-        "B(l,w)": "T(l*w*t)F(l,w)[-(c)$C(l*e,w*h)]C(l*b,w*h)",
-        "C(l,w)": "T(l*w*t)F(l,w)[+(d)$B(l*e,w*h)]B(l*b,w*h)",
-    }
-)
+# MonoTree = ParamLSystem(
+#     variables="F(l,w) A(l,w) B(l,w) C(l,w) +(c) -(c) T(t)".split(),
+#     constants={
+#         'b': 0.9,
+#         'c': 55,
+#         'd': 55,
+#         'e': 0.6,
+#         'h': 0.707,
+#         'i': 137.5,
+#         't': 0.08,
+#     },
+#     axiom="A(90,20)",
+#     rules={
+#         "A(l,w)": [(1, "T(l*w*t)F(l,w)([&B(l*e,w*h)]/A(l*b,w*h)")],
+#         "B(l,w)": [(1, "T(l*w*t)F(l,w)[-(c)$C(l*e,w*h)]C(l*b,w*h)")],
+#         "C(l,w)": [(1, "T(l*w*t)F(l,w)[+(d)$B(l*e,w*h)]B(l*b,w*h)")],
+#     }
+# )
 
 
-Roots = ParamLSystem(
+roots = ParamLSystem(
     variables="F(l,w) A(l,w) B(l,w) C(l,w) D(l,w) E(l,w) +(c) -(c) T(t) P(l,w)".split(),
     constants={
         'b': 0.9,
@@ -54,22 +55,57 @@ Roots = ParamLSystem(
     },
     axiom="[-(80)A(50,15)][-(51)A(50,15)][-(12)A(50,15)][+(14)A(50,15)][+(45)A(50,15)][+(83)A(50,15)]",
     rules={
-        "P(l,w)": "T(l*0.15)F(l/2,w)+(30)-(30)[-(c)C(l*e,w*h)]T(l*0.15)F(l/2,w)+(30)-(30)[+(c)C(l*e,w*h)]",
-        "A(l,w)": "P(l,w)P(l,w)A(l*b,w*f)",
-        "C(l,w)": "T(l*0.1)F(l,w)A(l*b,w*f)",
-    }
+        "P(l,w)": [(1, "T(l*0.15)F(l/2,w)+(30)-(30)[-(c)C(l*e,w*h)]T(l*0.15)F(l/2,w)+(30)-(30)[+(c)C(l*e,w*h)]")],
+        "A(l,w)": [(1, "P(l,w)P(l,w)A(l*b,w*f)")],
+        "C(l,w)": [(1, "T(l*0.1)F(l,w)A(l*b,w*f)")],
+    },
+    iterations=0,
 )
 
-#ignore this, was the original attempt at roots, kept for reference purposes
-"""    "A(l,w)": "T(l*w*t*0.2)F(l,w)[-(c)C(l*e,w*h)]+(15)-(15)B(l*b,w*f)",
-        "B(l,w)": "T(l*w*t*0.2)F(l,w)[+(c)C(l*e,w*h)]+(15)-(15)A(l*b,w*f)",
-        "C(l,w)": "T(l*w*t)F(l,w)[D(l*g,w*h)]+(25)-(25)C(l*b,w*f)",
-        "D(l,w)": "T(l*w*t)F(l,w)[-(d)E(l*e,w*h)]E(l*b,w*f)",
-        "E(l,w)": "T(l*w*t)F(l,w)[+(d)D(l*e,w*h)]D(l*b,w*f)",
-        "F(l,w)": "F(l*0.6,w)T(l*w*t*0.01)F(l*0.6,w)"
-    }"""
+# test_system = ParamLSystem(variables='F(l,w)', constants={}, axiom="F(100,30)", rules={'F(l,w)': [(1, "F(l,w)F(l,w)")]}, iterations=1)
 
-test_system = ParamLSystem(variables='F(l,w)', constants={}, axiom="F(100,30)", rules={'F(l,w)': "F(l,w)F(l,w)"}, iterations=1)
+advanced_root = ParamLSystem(
+    variables="A(l,w) B(l,w) C(l,w) D(l,w) E(l,w) F(l,w) G(l,w) Z(l,w,a) Y(l,w,a) X(l,w,a) T(t) +(a) -(a) $(a)".split(),
+    constants={
+        'a': 40, # branching angle
+        'b': 0.7, # branching width factor
+        'c': 0.85, # branching length factor
+        'd': 0.88, # root width factor
+        'e': 0.85, # root length factor
+        'f': 20, # angle randomness 1
+        'g': 25, # angle randomness 2
+        't': 0.15, # gravitropism factor
+    },
+    # axiom="[-(75)A(30, 15)][-(25)A(30,15)][+(25)A(30,15)][+(70)A(30,15)]",
+    axiom="A(30, 20)",
+    rules={
+        # first stage with no branching
+        "A(l,w)": [(1, "Y(l,w,f)C(l*e,w*d)")],
+        "B(l,w)": [(1, "C(l,w)")],
+
+        # second stage with branching
+        "C(l,w)": [(1, "Z(l,w,f)[+(a)A(l*c,w*b)]D(l*e,w*d)"),
+                   (1, "Z(l,w,f)[-(a)A(l*c,w*b)]D(l*e,w*d)")],
+        "D(l,w)": [(1, "Z(l,w,f)X(l,w,f)E(l*e,w*d)")],
+        "E(l,w)": [(4, "Z(l,w,f)[+(a)A(l*c,w*b)]F(l*e,w*d)"),
+                   (4, "Z(l,w,f)[-(a)A(l*c,w*b)]F(l*e,w*d)"),
+                   (1, "Z(l,w,f)G(l*e,w*d)")],
+        "F(l,w)": [(1, "Z(l,w,f)X(l,w,f)E(l*e,w*d)")],
+
+        # final non branching stage
+        "G(l,w)": [(1, "Z(l,w,g)G(l*e,w*d)")],
+
+        # rule to introduce slight random variation in forward direction
+        "$(a)": [(1, "+(a)-(a)")],
+        # simplifying rules and added random length variation
+        "X(l,w,a)": [(1, ""), (2, "Z(l*e,w*d,f)")],
+        "Y(l,w,a)": [(3, "Z(l,w,f)"),
+                     (4, "Z(l,w,f)Z(l*e,w*d,f)"),
+                     (1, "Z(l,w,f)Z(l,w,f)Z(l*e,w*d,f)")],
+        "Z(l,w,a)": [(1, "T(l*t)$(a)F(l,w)")],
+    },
+    iterations=0,
+)
 
 
 if __name__ == "__main__":
@@ -82,7 +118,7 @@ if __name__ == "__main__":
         angle_space, # a3
         angle_space, # a4
         angle_space, # a5
-        {'low': 5, 'high': 200}, #l
+        {'low': 5, 'high': 150}, #l
         {'low': 1, 'high': 50}, #w
         factor_space, #b
         angle_space, #c
@@ -93,14 +129,14 @@ if __name__ == "__main__":
 
     ga_instance = pygad.GA(
         num_generations=40,
-        num_parents_mating=4,
+        num_parents_mating=5,
         fitness_func=fitness_func_4,
         sol_per_pop=12,
         num_genes=12,
         gene_space=gene_space,
         parent_selection_type="rws",
-        keep_parents=1,
-        keep_elitism=2,
+        keep_parents=2,
+        keep_elitism=0,
         crossover_type="single_point",
         mutation_type="adaptive",
         mutation_probability=(0.3, 0.1),
@@ -110,20 +146,27 @@ if __name__ == "__main__":
         fitness_batch_size=4,
     )
 
+    ga_instance = pygad.load('ga_instance3')
+
+    ga_instance.current_time = time.time()
+
     ga_instance.run()
-
-
-    #print(CPlant.parsed_variables)
-    #print(CPlant.parsed_rules)
-    #print(CPlant.parsed_system)
-    #MonoTree.iterate(10)
-    #print(CPlant.parsed_system[4])
 
     drawer = ParamLSystemDrawer(
         alpha_zero=270,
-        start_position=(-325, 580),
-        screensize=(1200,1200)
+        start_position=(0, 300),
+        screensize=(900,900)
     )
+
+    # ga_instance.plot_fitness()
+    # lsystem = createRootSystem(ga_instance.best_solutions[-1])
+    # drawer.drawSystem(lsystem, "best_4", False, True)
+
+    # advanced_root.iterate(3)
+    # print(advanced_root.system)
+    # drawer.drawSystem(advanced_root, None, False, True)
+    # roots.iterate(11)
+    # drawer.drawSystem(roots, None, False, True)
 
     #Roots.iterate(12)
     # print(drawer.drawSystem(test_system, None, colour=(0,0,0), clear=False, onClick=False))
@@ -136,5 +179,3 @@ if __name__ == "__main__":
 
     #print(calcSurfaceArea('test'))
     #drawer.drawSystem(Roots)
-
-    #calcSurfaceArea("tree")

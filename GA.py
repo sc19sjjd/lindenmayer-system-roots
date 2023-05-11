@@ -7,7 +7,6 @@ import copy
 import time
 
 GA_INSTANCE_NAME =  "ga_instance3"
-CURRENT_TIME = time.time()
 
 def getColourArea(lower_bound, upper_bound, img):
     img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -78,9 +77,9 @@ def createRootSystem(inputs):
         axiom=(f"[-({a1})A({l},{w})][-({a2})A({l},{w})][-({a3})"
                f"A({l},{w})][+({a4})A({l},{w})][+({a5})A({l},{w})]"),
         rules={
-            "P(l,w)": "T(l*0.15)F(l/2,w)+(30)-(30)[-(c)C(l*e,w*h)]T(l*0.15)F(l/2,w)+(30)-(30)[+(c)C(l*e,w*h)]",
-            "A(l,w)": "P(l,w)P(l,w)A(l*b,w*f)",
-            "C(l,w)": "T(l*0.1)F(l,w)A(l*b,w*f)",
+            "P(l,w)": [(1, "T(l*0.15)F(l/2,w)+(30)-(30)[-(c)C(l*e,w*h)]T(l*0.15)F(l/2,w)+(30)-(30)[+(c)C(l*e,w*h)]")],
+            "A(l,w)": [(1, "P(l,w)P(l,w)A(l*b,w*f)")],
+            "C(l,w)": [(1, "T(l*0.1)F(l,w)A(l*b,w*f)")],
         },
         iterations=10,
     )
@@ -113,9 +112,9 @@ def fitness_func_4(ga_instance, solution, solution_idx):
         area_covered_inputs[11] = (area_covered_inputs[11] * 0.3) + 0.7
         root_area_systems.append(createRootSystem(area_covered_inputs))
 
-        energy_spent.append(drawer.drawSystem(root_systems[index], None, True, False))
+        energy_spent.append(drawer.drawSystem(root_systems[index], None, True, False) * 2)
        
-    fpath = f"training/root_area_{solution_idx[0]}"
+    fpath = "training/root_area"
     drawer.setTurtle(270, (-400, 680))
     drawer.drawSystem(root_area_systems[0], False, False, False, (0,0,0), ((-700,700), (-100,100)))
     # fix for batch size issues
@@ -172,9 +171,9 @@ def fitness_func(ga_instance, solution, solution_idx):
 def on_gen(ga_instance):
     print("Generation : ", ga_instance.generations_completed)
     print("Fitness of the best solution :", ga_instance.best_solution()[1])
-    print("Time taken: ", time.time() - CURRENT_TIME)
+    print(f"Time taken:  {time.time() - ga_instance.current_time : .2f} seconds")
 
-    CURRENT_TIME = time.time()
+    ga_instance.current_time = time.time()
 
     if ga_instance.generations_completed % 5 == 0:
         ga_instance.save(filename=GA_INSTANCE_NAME)
