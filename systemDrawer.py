@@ -36,27 +36,34 @@ class LSystemDrawer():
             self.turtle = turtle.Turtle()
             self.screen = turtle.Screen()
             self.screen.setup(screensize[0] + 4, screensize[1] + 8)
+            self.screen.title("L-System Derivation")
             self.setTurtle(alpha_zero, start_position)
 
     def setTurtle(self, alpha_zero, start_position):
         self.turtle.hideturtle()
-        self.turtle.screen.title("L-System Derivation")
         self.turtle.pu()
         self.turtle.setposition(start_position)
         self.turtle.speed("fastest")  # adjust as needed (0 = fastest)
         self.turtle.setheading(alpha_zero)  # initial heading
 
-    def drawSystem(self, system: LSystem, filename=None):
+    # returns the total surface area drawn by the turtle
+    def drawSystem(self, system: LSystem, filename=None, colour=(0,0,0)) -> int: 
         turtle.tracer(0, 0)
         stack = []
         system_len = len(system.system)
         width = self.base_thickness
         self.turtle.pensize(width)
+
+        turtle.colormode(255)
+        self.turtle.pencolor(colour)
+
+        total_drawn_area = 0.0
         for symbol in system.system[system_len-1]:
             self.turtle.pd()
             if symbol == "F":
                 self.turtle.pd()
                 self.turtle.forward(self.segment_length)
+                total_drawn_area += self.segment_length * (width * 1.5)
             elif symbol == "f":
                 self.turtle.pu()
                 self.turtle.forward(self.segment_length)
@@ -88,13 +95,15 @@ class LSystemDrawer():
         
         self.screen.exitonclick()
 
+        return int(total_drawn_area)
+
     def __saveScreen__(self, filename):
         self.screen.getcanvas().postscript(file=filename+".eps")
 
         img = Image.open(filename+".eps")
-        img.load(scale=10)
+        img.load()
 
-        img = img.convert("RGBA")
+        img = img.convert("RGB")
 
         # Calculate the new size, preserving the aspect ratio
         ratio = min(TARGET_BOUNDS[0] / img.size[0],
@@ -126,7 +135,7 @@ class ParamLSystemDrawer(LSystemDrawer):
 
             self.turtle = turtle.Turtle()
             self.screen = turtle.Screen()
-            self.screen.setup(screensize[0] + 4, screensize[1] + 8)
+            self.screen.setup(screensize[0] + 10, screensize[1] + 10)
             self.setTurtle(alpha_zero, start_position)
 
     # convert angle in degrees to unit vector heading direction
@@ -137,20 +146,54 @@ class ParamLSystemDrawer(LSystemDrawer):
             np.sin(radians)
         ])
         return heading
+    
+    def isInsideArea(self, area):
+        x, y = self.turtle.position()
 
-    def drawSystem(self, system: ParamLSystem, filename=None, onClick=True):
+        if x < area[0][0]:
+            return False
+        elif y > area[0][1]:
+            return False
+        elif x > area[1][0]:
+            return False
+        elif y < area[1][1]:
+            return False
+        else:
+            return True
+
+    def drawSystem(
+        self, 
+        system: ParamLSystem, 
+        filename=None, 
+        clear=True, 
+        onClick=True, 
+        colour=(0,0,0),
+        area=((-np.inf, np.inf), (np.inf, -np.inf)) # area in screen that the turtle can draw in ((top left), (bottom right))
+    ) -> int:
         turtle.tracer(0, 0)
         stack = []
         system_len = len(system.system)
+        total_drawn_area = 0.0
+        
+        turtle.colormode(255)
+        self.turtle.pencolor(colour)
+
         for symbol in system.parsed_system[system_len-1]:
             if symbol[0] == "F":
                 #print(f"symbol: {symbol}")
+                if self.isInsideArea(area):
+                    self.turtle.pd()
+                else:
+                    self.turtle.pu()
+
                 #generate a random length based on normal distribution
                 length = float(symbol[1])
                 length = np.random.normal(length, length * self.lsdf)
-                self.turtle.pd()
+                
                 self.turtle.pensize(float(symbol[2]))
                 self.turtle.forward(length)
+                
+                total_drawn_area += length * (self.turtle.pensize() * 1.1)
             elif symbol[0] == "+":
                 if len(symbol) > 1:
                     #generate a random angle based on normal distribution
@@ -196,4 +239,10 @@ class ParamLSystemDrawer(LSystemDrawer):
         if onClick:
             self.screen.exitonclick()
 
-        turtle.clearscreen()
+        if clear:
+            try:
+                turtle.clearscreen()
+            except:
+                pass
+
+        return int(total_drawn_area)
