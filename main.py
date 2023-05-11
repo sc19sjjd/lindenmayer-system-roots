@@ -126,21 +126,20 @@ def fitness_func(ga_instance, solution, solution_idx):
 
     drawer = ParamLSystemDrawer(
         alpha_zero=270,
-        start_position=(0, 340),
-        screensize=(700,700)
+        start_position=(0, 290),
+        screensize=(900,900)
     )
-
+    drawer.drawSystem(lsystem, f"training/root{solution_idx}", False)
+    
     drawer_area = ParamLSystemDrawer(
         alpha_zero=270,
-        start_position=(0, 340),
-        screensize=(700,700)
-    )
-
-    drawer.drawSystem(lsystem, f"training/root{solution_idx}", False)
+        start_position=(0, 290),
+        screensize=(600,600)
+    )   
     drawer_area.drawSystem(lsystem_area, f"training/root_area{solution_idx}", False)
 
-    energy_spent = int(calcSurfaceArea(f"training/root{solution_idx}") / 1000000)
-    area_covered = int(calcSurfaceArea(f"training/root_area{solution_idx}") / 1000000)
+    energy_spent = int(calcSurfaceArea(f"training/root{solution_idx}") / 10000)
+    area_covered = int(calcSurfaceArea(f"training/root_area{solution_idx}") / 10000)
 
     return area_covered - energy_spent
 
@@ -149,7 +148,7 @@ def on_gen(ga_instance):
     print("Fitness of the best solution :", ga_instance.best_solution()[1])
 
     if ga_instance.generations_completed % 5 == 0:
-        ga_instance.save(filename="ga_instance1")
+        ga_instance.save(filename="ga_instance2")
 
 if __name__ == "__main__":
     angle_space = {'low': 0, 'high': 180}
@@ -198,7 +197,8 @@ if __name__ == "__main__":
         crossover_type=crossover_type,
         mutation_type=mutation_type,
         mutation_probability=mutation_probability,
-        on_generation=on_generation
+        on_generation=on_generation,
+        save_best_solutions=True,
     )
 
     ga_instance.run()
