@@ -91,13 +91,13 @@ class LSystemDrawer():
         turtle.update()
 
         if filename:
-            self.__saveScreen__(filename)
+            self.saveScreen(filename)
         
         self.screen.exitonclick()
 
         return int(total_drawn_area)
 
-    def __saveScreen__(self, filename):
+    def saveScreen(self, filename):
         self.screen.getcanvas().postscript(file=filename+".eps")
 
         img = Image.open(filename+".eps")
@@ -234,7 +234,7 @@ class ParamLSystemDrawer(LSystemDrawer):
         turtle.update()
 
         if filename:
-            self.__saveScreen__(filename)
+            self.saveScreen(filename)
         
         if onClick:
             self.screen.exitonclick()

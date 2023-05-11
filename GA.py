@@ -4,8 +4,10 @@ from LSystem import ParamLSystem
 from systemDrawer import ParamLSystemDrawer
 import numpy as np
 import copy
+import time
 
 GA_INSTANCE_NAME =  "ga_instance3"
+CURRENT_TIME = time.time()
 
 def getColourArea(lower_bound, upper_bound, img):
     img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -87,10 +89,15 @@ def createRootSystem(inputs):
 
 
 def fitness_func_4(ga_instance, solution, solution_idx):
+    # none type is given at the end
+    if solution_idx is None:
+        return 0
+
+
     drawer = ParamLSystemDrawer(
         alpha_zero=270,
-        start_position=(0, 590),
-        screensize=(1200,1200),
+        start_position=(0, 580),
+        screensize=(1400,1400),
     )
     
     root_systems = []
@@ -100,25 +107,34 @@ def fitness_func_4(ga_instance, solution, solution_idx):
         root_systems.append(createRootSystem(s))    
         
         area_covered_inputs = copy.deepcopy(s)
-        area_covered_inputs[6] += 40
+        area_covered_inputs[6] += 40 # increase starting width
+        # branch width falloff, resize the range to 0.7 - 1
+        # NewValue = (((OldValue - OldMin) * NewRange) / OldRange) + NewMin
+        area_covered_inputs[11] = (area_covered_inputs[11] * 0.3) + 0.7
         root_area_systems.append(createRootSystem(area_covered_inputs))
 
         energy_spent.append(drawer.drawSystem(root_systems[index], None, True, False))
        
     fpath = f"training/root_area_{solution_idx[0]}"
-    drawer.setTurtle(270, (-325, 590))
-    drawer.drawSystem(root_area_systems[0], None, False, False, (0,0,0), ((-600,600), (-50,50)))
-    drawer.setTurtle(270, (-325, -60))
-    drawer.drawSystem(root_area_systems[1], None, False, False, (255,0,0), ((-600,-50), (-50,-600)))
-    drawer.setTurtle(270, (325, 590))
-    drawer.drawSystem(root_area_systems[2], None, False, False, (0,255,0), ((50,600), (600,50)))
-    drawer.setTurtle(270, (325, -60))
-    drawer.drawSystem(root_area_systems[3], fpath, False, False, (0,0,255), ((50,-50), (600,-600)))
+    drawer.setTurtle(270, (-400, 680))
+    drawer.drawSystem(root_area_systems[0], False, False, False, (0,0,0), ((-700,700), (-100,100)))
+    # fix for batch size issues
+    if len(root_systems) > 1:
+        drawer.setTurtle(270, (-400, -120))
+        drawer.drawSystem(root_area_systems[1], False, False, False, (255,0,0), ((-700,-100), (-100,-700)))
+    if len(root_systems) > 2:
+        drawer.setTurtle(270, (400, 680))
+        drawer.drawSystem(root_area_systems[2], False, False, False, (0,255,0), ((100,700), (700,100)))
+    if len(root_systems) > 3:
+        drawer.setTurtle(270, (400, -120))
+        drawer.drawSystem(root_area_systems[3], False, False, False, (0,0,255), ((100,-100), (700,-700)))
 
-    areas_covered = calcSurfaceArea4("fpath")
+    drawer.saveScreen(fpath)
+
+    areas_covered = calcSurfaceArea4(fpath)
 
     fitness = []
-    for i in range(len(areas_covered)):
+    for i in range(len(energy_spent)):
         fitness.append(areas_covered[i] - energy_spent[i])
 
     return fitness
@@ -152,9 +168,13 @@ def fitness_func(ga_instance, solution, solution_idx):
 
     return area_covered - energy_spent
 
+
 def on_gen(ga_instance):
     print("Generation : ", ga_instance.generations_completed)
     print("Fitness of the best solution :", ga_instance.best_solution()[1])
+    print("Time taken: ", time.time() - CURRENT_TIME)
+
+    CURRENT_TIME = time.time()
 
     if ga_instance.generations_completed % 5 == 0:
         ga_instance.save(filename=GA_INSTANCE_NAME)
