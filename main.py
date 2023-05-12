@@ -152,17 +152,17 @@ if __name__ == "__main__":
     # ga_instance.run()
 
     drawer = ParamLSystemDrawer(
-        alpha_zero=90,
-        start_position=(0, -300),
+        alpha_zero=270,
+        start_position=(0, 330),
         screensize=(700,700)
     )
 
-    # ga_instance.plot_fitness()
-    # lsystem = createRootSystem(ga_instance.best_solutions[-1])
-    # drawer.drawSystem(lsystem, "best_4", False, True)
+    #ga_instance.plot_fitness()
+    lsystem = createRootSystem(ga_instance.best_solutions[100])
+    drawer.drawSystem(lsystem, "best_4", False, True)
 
-    MonoTree.iterate(12)
-    drawer.drawSystem(MonoTree, 'tree_no_gravitropism', False, True)
+    # MonoTree.iterate(12)
+    # drawer.drawSystem(MonoTree, 'tree_gravitropism', False, True)
     # advanced_root.iterate(3)
     # print(advanced_root.system)
     # drawer.drawSystem(advanced_root, None, False, True)

@@ -106,7 +106,7 @@ def fitness_func_4(ga_instance, solution, solution_idx):
         root_systems.append(createRootSystem(s))    
         
         area_covered_inputs = copy.deepcopy(s)
-        area_covered_inputs[6] += 40 # increase starting width
+        area_covered_inputs[6] += 30 # increase starting width
         # branch width falloff, resize the range to 0.7 - 1
         # NewValue = (((OldValue - OldMin) * NewRange) / OldRange) + NewMin
         area_covered_inputs[11] = (area_covered_inputs[11] * 0.3) + 0.7
