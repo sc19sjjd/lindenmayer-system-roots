@@ -162,7 +162,7 @@ if __name__ == "__main__":
     # drawer.drawSystem(lsystem, "best_4", False, True)
 
     MonoTree.iterate(12)
-    drawer.drawSystem(MonoTree, 'tree_gravitropism', False, True)
+    drawer.drawSystem(MonoTree, 'tree_no_gravitropism', False, True)
     # advanced_root.iterate(3)
     # print(advanced_root.system)
     # drawer.drawSystem(advanced_root, None, False, True)
