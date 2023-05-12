@@ -75,14 +75,14 @@ advanced_root = ParamLSystem(
         'g': 25, # angle randomness 2
         't': 0.15, # gravitropism factor
     },
-    # axiom="[-(75)A(30, 15)][-(25)A(30,15)][+(25)A(30,15)][+(70)A(30,15)]",
-    axiom="A(30, 20)",
+    axiom="[-(75)A(8, 15)][-(25)A(8,15)][+(25)A(8,15)][+(70)A(8,15)]",
+    # axiom="A(30, 20)",
     rules={
-        # first stage with no branching
+        # first stage with no branching (basal zone)
         "A(l,w)": [(1, "Y(l,w,f)C(l*e,w*d)")],
         "B(l,w)": [(1, "C(l,w)")],
 
-        # second stage with branching
+        # second stage with branching (branching zone)
         "C(l,w)": [(1, "Z(l,w,f)[+(a)A(l*c,w*b)]D(l*e,w*d)"),
                    (1, "Z(l,w,f)[-(a)A(l*c,w*b)]D(l*e,w*d)")],
         "D(l,w)": [(1, "Z(l,w,f)X(l,w,f)E(l*e,w*d)")],
@@ -91,7 +91,7 @@ advanced_root = ParamLSystem(
                    (1, "Z(l,w,f)G(l*e,w*d)")],
         "F(l,w)": [(1, "Z(l,w,f)X(l,w,f)E(l*e,w*d)")],
 
-        # final non branching stage
+        # final non branching stage (apical zone)
         "G(l,w)": [(1, "Z(l,w,g)G(l*e,w*d)")],
 
         # rule to introduce slight random variation in forward direction
@@ -153,19 +153,19 @@ if __name__ == "__main__":
 
     drawer = ParamLSystemDrawer(
         alpha_zero=270,
-        start_position=(0, 330),
-        screensize=(700,700)
+        start_position=(0, 430),
+        screensize=(900,900)
     )
 
     #ga_instance.plot_fitness()
-    lsystem = createRootSystem(ga_instance.best_solutions[100])
-    drawer.drawSystem(lsystem, "best_4", False, True)
+    # lsystem = createRootSystem(ga_instance.best_solutions[100])
+    # drawer.drawSystem(lsystem, "best_4", False, True)
 
     # MonoTree.iterate(12)
     # drawer.drawSystem(MonoTree, 'tree_gravitropism', False, True)
-    # advanced_root.iterate(3)
+    advanced_root.iterate(12)
     # print(advanced_root.system)
-    # drawer.drawSystem(advanced_root, None, False, True)
+    drawer.drawSystem(advanced_root, 'advanced_root', False, True)
     # roots.iterate(12)
     # drawer.drawSystem(roots, 'roots', False, True)
 
