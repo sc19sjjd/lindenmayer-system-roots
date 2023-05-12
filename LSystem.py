@@ -126,6 +126,7 @@ class ParamLSystem():
     def __repr__(self):
         return str(self.system)
 
+    # select a random matching rule with roulette wheel like selection
     def selectRule(self, var):
         if not var in self.parsed_rules.keys():
             return None, None
@@ -149,15 +150,12 @@ class ParamLSystem():
     
     def applyRule(self, rule: str, globals: dict) -> list:
         res = []
-        #print(f"globals: {globals}")
         for substr in rule[1]:
             if len(substr) >  1:
-                #print(f"substr: {substr}")
                 new_var = [substr[0]]
+
                 for param in substr[1:]:
-                    #print(f"param: {param}")
                     new_var.append(str(eval(param, globals)))
-                    #print(f"new_var:  {new_var}")
 
                 res.append(new_var)
             else:
@@ -178,10 +176,9 @@ class ParamLSystem():
                         p_next.append(substr)
                         continue
                     
+                    # match the rule's parameter keys with values
                     globals = {}
                     j = 1
-                    # print(f"params: {params}")
-                    # print(f"substr: {substr}")
                     for param in params:
                         globals[param] = float(substr[j])
                         j += 1
@@ -193,11 +190,11 @@ class ParamLSystem():
                 else:
                     p_next.append(substr)
 
-            #print(f"p_next: {p_next}")
             self.parsed_system.append(p_next)
             self.system.append(parsedSentenceToString(p_next))
 
 
+# simple LSystem class from Lindenmayer Systems python module
 class LSystem:
     def __init__(self, variables, constants, axiom, rules, iterations=0):
         self.variables = variables

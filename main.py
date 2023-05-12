@@ -40,6 +40,7 @@ MonoTree = ParamLSystem(
 )
 
 
+# simple root system
 roots = ParamLSystem(
     variables="F(l,w) A(l,w) B(l,w) C(l,w) D(l,w) E(l,w) +(c) -(c) T(t) P(l,w)".split(),
     constants={
@@ -108,7 +109,7 @@ advanced_root = ParamLSystem(
 
 
 if __name__ == "__main__":
-    # create gene space
+    # create gene space for simple root system
     angle_space = {'low': 0, 'high': 180}
     factor_space = {'low': 0, 'high': 1}
     gene_space = [

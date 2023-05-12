@@ -1,21 +1,10 @@
 import turtle
 import numpy as np
-import cv2
-import tkinter as tk
-from turtle import Turtle
 from LSystem import *
 from PIL import Image
 
-SEG_LENGTH = 20
-ANGLE = 45
-THICKNESS_SCALE = 1.75
-BASE_THICKNESS = 6.0
-WIDTH = 800
-HEIGHT = 800
 TARGET_BOUNDS = (1500, 1500)
-T_HEADING = np.array([0, -1])
-ANGLE_DEVIATION_FACTOR = 0.1
-LENGTH_DEVIATION_FACTOR = 0.2
+
 
 class LSystemDrawer():
     def __init__(
@@ -96,12 +85,13 @@ class LSystemDrawer():
         self.screen.exitonclick()
 
         return int(total_drawn_area)
+    
 
     def saveScreen(self, filename):
         self.screen.getcanvas().postscript(file=filename+".eps")
 
         img = Image.open(filename+".eps")
-        img.load()
+        img.load(scale=10)
 
         img = img.convert("RGB")
 
@@ -147,7 +137,7 @@ class ParamLSystemDrawer(LSystemDrawer):
         ])
         return heading
     
-    def isInsideArea(self, area):
+    def isTurtleInsideArea(self, area):
         x, y = self.turtle.position()
 
         if x < area[0][0]:
@@ -180,8 +170,7 @@ class ParamLSystemDrawer(LSystemDrawer):
 
         for symbol in system.parsed_system[system_len-1]:
             if symbol[0] == "F":
-                #print(f"symbol: {symbol}")
-                if self.isInsideArea(area):
+                if self.isTurtleInsideArea(area):
                     self.turtle.pd()
                 else:
                     self.turtle.pu()
@@ -209,8 +198,8 @@ class ParamLSystemDrawer(LSystemDrawer):
                     self.turtle.left(angle)
                 else:
                     self.turtle.left(self.angle)
-            #gravitropism,
-            #calculate beta (change in heading angle towards stimulus direction)
+            # gravitropism,
+            # calculate beta (change in heading angle towards stimulus direction)
             # beta = e|H * T| where H and T are vectors and e is susceptibility
             elif symbol[0] == "T":
                 heading = self.turtle.heading()
