@@ -21,24 +21,23 @@ Plant = LSystem(
 
 # monopodial tree from:
 # https://www.houdinikitchen.net/wp-content/uploads/2019/12/L-systems.pdf
-# MonoTree = ParamLSystem(
-#     variables="F(l,w) A(l,w) B(l,w) C(l,w) +(c) -(c) T(t)".split(),
-#     constants={
-#         'b': 0.9,
-#         'c': 55,
-#         'd': 55,
-#         'e': 0.6,
-#         'h': 0.707,
-#         'i': 137.5,
-#         't': 0.08,
-#     },
-#     axiom="A(90,20)",
-#     rules={
-#         "A(l,w)": [(1, "T(l*w*t)F(l,w)([&B(l*e,w*h)]/A(l*b,w*h)")],
-#         "B(l,w)": [(1, "T(l*w*t)F(l,w)[-(c)$C(l*e,w*h)]C(l*b,w*h)")],
-#         "C(l,w)": [(1, "T(l*w*t)F(l,w)[+(d)$B(l*e,w*h)]B(l*b,w*h)")],
-#     }
-# )
+MonoTree = ParamLSystem(
+    variables="F(l,w) A(l,w) B(l,w) C(l,w) +(c) -(c) T(t)".split(),
+    constants={
+        'b': 0.9,
+        'c': 55,
+        'd': 55,
+        'e': 0.6,
+        'h': 0.707,
+        't': 0.08,
+    },
+    axiom="A(90,20)",
+    rules={
+        "A(l,w)": [(1, "F(l,w)([&B(l*e,w*h)]/A(l*b,w*h)")],
+        "B(l,w)": [(1, "F(l,w)[-(c)$C(l*e,w*h)]C(l*b,w*h)")],
+        "C(l,w)": [(1, "F(l,w)[+(d)$B(l*e,w*h)]B(l*b,w*h)")],
+    }
+)
 
 
 roots = ParamLSystem(
@@ -139,7 +138,7 @@ if __name__ == "__main__":
         keep_elitism=0,
         crossover_type="single_point",
         mutation_type="adaptive",
-        mutation_probability=(0.3, 0.1),
+        mutation_probability=(0.4, 0.2),
         on_generation=on_gen,
         save_best_solutions=True,
         suppress_warnings=True,
@@ -150,23 +149,25 @@ if __name__ == "__main__":
 
     ga_instance.current_time = time.time()
 
-    ga_instance.run()
+    # ga_instance.run()
 
     drawer = ParamLSystemDrawer(
-        alpha_zero=270,
-        start_position=(0, 300),
-        screensize=(900,900)
+        alpha_zero=90,
+        start_position=(0, -300),
+        screensize=(700,700)
     )
 
     # ga_instance.plot_fitness()
     # lsystem = createRootSystem(ga_instance.best_solutions[-1])
     # drawer.drawSystem(lsystem, "best_4", False, True)
 
+    MonoTree.iterate(12)
+    drawer.drawSystem(MonoTree, 'tree_gravitropism', False, True)
     # advanced_root.iterate(3)
     # print(advanced_root.system)
     # drawer.drawSystem(advanced_root, None, False, True)
-    # roots.iterate(11)
-    # drawer.drawSystem(roots, None, False, True)
+    # roots.iterate(12)
+    # drawer.drawSystem(roots, 'roots', False, True)
 
     #Roots.iterate(12)
     # print(drawer.drawSystem(test_system, None, colour=(0,0,0), clear=False, onClick=False))
