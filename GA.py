@@ -60,6 +60,7 @@ def calcSurfaceArea4(filename):
     return black_area, red_area, green_area, blue_area
 
 
+# same root l-system as roots in main.py
 def createRootSystem(inputs):
     a1, a2, a3, a4, a5 = inputs[:5]
     l ,w = inputs[5:7]
@@ -86,7 +87,7 @@ def createRootSystem(inputs):
 
     return lsystem
 
-
+# allow for batch size of up to 4
 def fitness_func_4(ga_instance, solution, solution_idx):
     # none type is given at the end
     if solution_idx is None:
@@ -107,9 +108,9 @@ def fitness_func_4(ga_instance, solution, solution_idx):
         
         area_covered_inputs = copy.deepcopy(s)
         area_covered_inputs[6] += 30 # increase starting width
-        # branch width falloff, resize the range to 0.7 - 1
+        # branch width falloff, resize the range from 0.0-1.0 to 0.6-1.0
         # NewValue = (((OldValue - OldMin) * NewRange) / OldRange) + NewMin
-        area_covered_inputs[11] = (area_covered_inputs[11] * 0.3) + 0.7
+        area_covered_inputs[11] = (area_covered_inputs[11] * 0.3) + 0.6
         root_area_systems.append(createRootSystem(area_covered_inputs))
 
         energy_spent.append(drawer.drawSystem(root_systems[index], None, True, False) * 2)
@@ -154,20 +155,15 @@ def fitness_func(ga_instance, solution, solution_idx):
         start_position=(0, 290),
         screensize=(600,600)
     )
-    energy_spent = drawer.drawSystem(root_system, False)
     
-    drawer_area = ParamLSystemDrawer(
-        alpha_zero=270,
-        start_position=(0, 290),
-        screensize=(600,600)
-    )   
-    drawer_area.drawSystem(root_area_system, f"training/root_area{solution_idx}", False)
+    energy_spent = drawer.drawSystem(root_system, None, True, False)
 
+    drawer.drawSystem(root_area_system, f"training/root_area{solution_idx}", False, False)
     area_covered = int(calcSurfaceArea(f"training/root_area{solution_idx}"))
 
     return area_covered - energy_spent
 
-
+# called at the end of each generation
 def on_gen(ga_instance):
     print("Generation : ", ga_instance.generations_completed)
     print("Fitness of the best solution :", ga_instance.best_solution()[1])
