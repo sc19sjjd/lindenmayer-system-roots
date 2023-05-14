@@ -91,7 +91,7 @@ class LSystemDrawer():
         self.screen.getcanvas().postscript(file=filename+".eps")
 
         img = Image.open(filename+".eps")
-        img.load(scale=10)
+        img.load(scale=5)
 
         img = img.convert("RGB")
 
@@ -140,13 +140,13 @@ class ParamLSystemDrawer(LSystemDrawer):
     def isTurtleInsideArea(self, area):
         x, y = self.turtle.position()
 
-        if x < area[0][0]:
+        if x <= area[0][0]:
             return False
-        elif y > area[0][1]:
+        elif y >= area[0][1]:
             return False
-        elif x > area[1][0]:
+        elif x >= area[1][0]:
             return False
-        elif y < area[1][1]:
+        elif y <= area[1][1]:
             return False
         else:
             return True
@@ -177,7 +177,7 @@ class ParamLSystemDrawer(LSystemDrawer):
 
                 #generate a random length based on normal distribution
                 length = float(symbol[1])
-                length = np.random.normal(length, length * self.lsdf)
+                #length = np.random.normal(length, length * self.lsdf)
                 
                 self.turtle.pensize(float(symbol[2]))
                 self.turtle.forward(length)

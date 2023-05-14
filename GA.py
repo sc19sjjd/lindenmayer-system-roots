@@ -6,7 +6,7 @@ import numpy as np
 import copy
 import time
 
-GA_INSTANCE_NAME =  "ga_instance3"
+GA_INSTANCE_NAME =  "ga_instance_adv"
 
 def getColourArea(lower_bound, upper_bound, img):
     img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -74,25 +74,80 @@ def createRootSystem(inputs):
             'e': e,
             'f': f,
             'h': h,
+            't': 0.12,
         },
         axiom=(f"[-({a1})A({l},{w})][-({a2})A({l},{w})][-({a3})"
                f"A({l},{w})][+({a4})A({l},{w})][+({a5})A({l},{w})]"),
         rules={
-            "P(l,w)": [(1, "T(l*0.15)F(l/2,w)+(30)-(30)[-(c)C(l*e,w*h)]T(l*0.15)F(l/2,w)+(30)-(30)[+(c)C(l*e,w*h)]")],
+            "P(l,w)": [(1, "T(l*t)F(l/2,w)[-(c)C(l*e,w*h)]T(l*t)F(l/2,w)[+(c)C(l*e,w*h)]")],
             "A(l,w)": [(1, "P(l,w)P(l,w)A(l*b,w*f)")],
-            "C(l,w)": [(1, "T(l*0.1)F(l,w)A(l*b,w*f)")],
+            "C(l,w)": [(1, "T(l*t)F(l,w)A(l*b,w*f)")],
         },
         iterations=10,
     )
 
     return lsystem
 
+def createAdvancedRootSystem(inputs):
+    a1, a2, a3, a4 = inputs[:4]
+    l, w = inputs[4:6]
+    a, z, b, c, d, e, f, g = inputs[6:]
+
+    advanced_root = ParamLSystem(
+        variables="F(l,w) A(l,w) B(l,w) C(l,w) D(l,w) E(l,w) G(l,w) H(l,w) Z(l,w,a) Y(l,w,a) X(l,w,a) T(t) +(a) -(a) $(a)".split(),
+        constants={
+            'a': a, # branching angle
+            'z': z, # branching angle 2
+            'b': b, # branching width factor
+            'c': c, # branching length factor
+            'd': d, # root width factor
+            'e': e, # root length factor
+            'f': f, # angle randomness 1
+            'g': g, # angle randomness 2
+            't': 0.27, # gravitropism factor
+        },
+        axiom=f"[-({a1})A({l},{w})][-({a2})A({l},{w})][+({a3})A({l},{w})][+({a4})A({l},{w})]",
+        # axiom="A(70, 20)",
+        rules={
+            # first stage with no branching (basal zone)
+            "A(l,w)": [(1, "Y(l,w,f)C(l*e,w*d)")],
+            "B(l,w)": [(1, "C(l,w)")],
+
+            # second stage with branching (branching zone)
+            "C(l,w)": [(2, "Z(l,w,f)[+(a)A(l*c,w*b)]D(l*e,w*d)"),
+                        (2, "Z(l,w,f)[-(a)A(l*c,w*b)]D(l*e,w*d)"),
+                        (1, "Z(l,w,f)[+(z)A(l*c,w*b)]D(l*e,w*d)"), # alternative branching angles for variation
+                        (1, "Z(l,w,f)[-(z)A(l*c,w*b)]D(l*e,w*d)")],
+            "D(l,w)": [(1, "Z(l,w,f)X(l,w,f)E(l*e,w*d)")],
+            "E(l,w)": [(3, "Z(l,w,f)[+(a)A(l*c,w*b)]G(l*e,w*d)"),
+                        (3, "Z(l,w,f)[-(a)A(l*c,w*b)]G(l*e,w*d)"),
+                        (2, "Z(l,w,f)[+(z)A(l*c,w*b)]G(l*e,w*d)"),  # alternative branching angles
+                        (2, "Z(l,w,f)[-(z)A(l*c,w*b)]G(l*e,w*d)"),
+                        (3, "Z(l,w,f)G(l*e,w*d)")],
+            "G(l,w)": [(1, "Z(l,w,f)X(l,w,f)E(l*e,w*d)")],
+
+            # final non branching stage (apical zone)
+            "H(l,w)": [(1, "Z(l,w,g)H(l*e,w*d)")],
+
+            # rule to introduce slight random variation in forward direction
+            "$(a)": [(1, "+(a)-(a)")],
+            # simplifying rules and added random length variation
+            "X(l,w,a)": [(1, ""), (2, "Z(l*e,w*d,f)")],
+            "Y(l,w,a)": [(3, "Z(l,w,f)"),
+                            (4, "Z(l,w,f)Z(l*e,w*d,f)"),
+                            (1, "Z(l,w,f)Z(l,w,f)Z(l*e,w*d,f)")],
+            "Z(l,w,a)": [(1, "$(a)T(l*t)F(l,w)T(l*t)F(l,w)")],
+        },
+        iterations=12,
+    )
+
+    return advanced_root
+
 # allow for batch size of up to 4
 def fitness_func_4(ga_instance, solution, solution_idx):
     # none type is given at the end
     if solution_idx is None:
         return 0
-
 
     drawer = ParamLSystemDrawer(
         alpha_zero=270,
@@ -104,14 +159,14 @@ def fitness_func_4(ga_instance, solution, solution_idx):
     root_area_systems = []
     energy_spent = []
     for index, s in enumerate(solution):
-        root_systems.append(createRootSystem(s))    
+        root_systems.append(createAdvancedRootSystem(s))    
         
         area_covered_inputs = copy.deepcopy(s)
-        area_covered_inputs[6] += 30 # increase starting width
+        area_covered_inputs[5] += 30 # increase starting width
         # branch width falloff, resize the range from 0.0-1.0 to 0.6-1.0
         # NewValue = (((OldValue - OldMin) * NewRange) / OldRange) + NewMin
-        area_covered_inputs[11] = (area_covered_inputs[11] * 0.3) + 0.6
-        root_area_systems.append(createRootSystem(area_covered_inputs))
+        area_covered_inputs[8] = (area_covered_inputs[8] * 0.3) + 0.6
+        root_area_systems.append(createAdvancedRootSystem(area_covered_inputs))
 
         energy_spent.append(drawer.drawSystem(root_systems[index], None, True, False) * 2)
        

@@ -75,7 +75,10 @@ def parseRules(rules: dict, variables: list) -> dict:
 def parsedVarToString(var: list) -> str:
     s = var[0] + '('
     for i in range(1,len(var)):
-        s += var[i] + ','
+        if len(var[i]) > 4:
+            s += var[i][:5] + ','
+        else:
+            s += var[i] + ','
     s = s[:-1] + ')'
 
     return s
@@ -170,12 +173,14 @@ class ParamLSystem():
             p_next = []
             for substr in p_current:
                 if len(substr) > 1:
+                    # print(f"\nvar: {substr[0]}")
                     rule, params = self.selectRule(substr[0])
 
                     if rule is None:
                         p_next.append(substr)
                         continue
                     
+                    # print(f"rule: {rule}")
                     # match the rule's parameter keys with values
                     globals = {}
                     j = 1
