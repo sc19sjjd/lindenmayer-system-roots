@@ -153,15 +153,30 @@ if __name__ == "__main__":
 
     # ga_instance = pygad.load('ga_instance_adv')
 
-    ga_instance.current_time = time.time()
+    # ga_instance.current_time = time.time()
 
-    ga_instance.run()
+    # ga_instance.run()
 
-    drawer = ParamLSystemDrawer(
-        alpha_zero=270,
-        start_position=(0, 430),
-        screensize=(1000,1000)
+    koch = LSystem(
+        variables="F".split(),
+        constants="+ - [ ]".split(),
+        rules={
+            'F': 'F+F--F+F'
+        },
+        axiom='F',
+        iterations=8
     )
+
+    drawer = LSystemDrawer(
+        alpha_zero=0,
+        start_position=(-450, 0),
+        screensize=(1000,1000),
+        segment_length=0.15,
+        angle=60,
+        base_thickness=2
+    )
+
+    drawer.drawSystem(koch, 'koch_8')
 
     # ga_instance.plot_fitness()
     # lsystem = createAdvancedRootSystem(ga_instance.best_solutions[91])
