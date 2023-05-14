@@ -77,7 +77,7 @@ advanced_root = ParamLSystem(
         'g': 50, # angle randomness 2
         't': 0.25, # gravitropism factor
     },
-    axiom="[-(75)A(40, 18)][-(25)A(40,18)][+(25)A(30,18)][+(70)A(30,18)]",
+    axiom="[-(75)A(45, 18)][-(25)A(45,18)][+(25)A(45,18)][+(70)A(45,18)]",
     # axiom="A(70, 20)",
     rules={
         # first stage with no branching (basal zone)
@@ -130,16 +130,14 @@ if __name__ == "__main__":
         factor_space, #c
         factor_space, #d
         factor_space, #e
-        factor_space, #f
-        factor_space, #g
     ]
 
     ga_instance = pygad.GA(
-        num_generations=100,
+        num_generations=1000,
         num_parents_mating=5,
         fitness_func=fitness_func_4,
         sol_per_pop=12,
-        num_genes=14,
+        num_genes=12,
         gene_space=gene_space,
         parent_selection_type="rws",
         keep_parents=2,
@@ -155,9 +153,9 @@ if __name__ == "__main__":
 
     # ga_instance = pygad.load('ga_instance_adv')
 
-    # ga_instance.current_time = time.time()
+    ga_instance.current_time = time.time()
 
-    # ga_instance.run()
+    ga_instance.run()
 
     drawer = ParamLSystemDrawer(
         alpha_zero=270,
@@ -173,7 +171,7 @@ if __name__ == "__main__":
     # drawer.drawSystem(MonoTree, 'tree_gravitropism', False, True)
     # advanced_root.iterate(12)
     # print(advanced_root.system)
-    # drawer.drawSystem(advanced_root, None, False, True)
+    # drawer.drawSystem(advanced_root, 'advanced_root', False, True)
     
     # a1, a2, a3, a4, a5 = 70, 35, 5, 38, 72
     # l, w = 50, 15

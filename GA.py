@@ -91,7 +91,7 @@ def createRootSystem(inputs):
 def createAdvancedRootSystem(inputs):
     a1, a2, a3, a4 = inputs[:4]
     l, w = inputs[4:6]
-    a, z, b, c, d, e, f, g = inputs[6:]
+    a, z, b, c, d, e = inputs[6:]
 
     advanced_root = ParamLSystem(
         variables="F(l,w) A(l,w) B(l,w) C(l,w) D(l,w) E(l,w) G(l,w) H(l,w) Z(l,w,a) Y(l,w,a) X(l,w,a) T(t) +(a) -(a) $(a)".split(),
@@ -102,8 +102,8 @@ def createAdvancedRootSystem(inputs):
             'c': c, # branching length factor
             'd': d, # root width factor
             'e': e, # root length factor
-            'f': f, # angle randomness 1
-            'g': g, # angle randomness 2
+            'f': 40, # angle randomness 1
+            'g': 30, # angle randomness 2
             't': 0.27, # gravitropism factor
         },
         axiom=f"[-({a1})A({l},{w})][-({a2})A({l},{w})][+({a3})A({l},{w})][+({a4})A({l},{w})]",
@@ -130,7 +130,7 @@ def createAdvancedRootSystem(inputs):
             "H(l,w)": [(1, "Z(l,w,g)H(l*e,w*d)")],
 
             # rule to introduce slight random variation in forward direction
-            "$(a)": [(1, "+(a)-(a)")],
+            "$(a)": [(1, "")],
             # simplifying rules and added random length variation
             "X(l,w,a)": [(1, ""), (2, "Z(l*e,w*d,f)")],
             "Y(l,w,a)": [(3, "Z(l,w,f)"),
@@ -138,7 +138,7 @@ def createAdvancedRootSystem(inputs):
                             (1, "Z(l,w,f)Z(l,w,f)Z(l*e,w*d,f)")],
             "Z(l,w,a)": [(1, "$(a)T(l*t)F(l,w)T(l*t)F(l,w)")],
         },
-        iterations=12,
+        iterations=13,
     )
 
     return advanced_root
@@ -162,10 +162,10 @@ def fitness_func_4(ga_instance, solution, solution_idx):
         root_systems.append(createAdvancedRootSystem(s))    
         
         area_covered_inputs = copy.deepcopy(s)
-        area_covered_inputs[5] += 30 # increase starting width
+        area_covered_inputs[5] += 50 # increase starting width
         # branch width falloff, resize the range from 0.0-1.0 to 0.6-1.0
         # NewValue = (((OldValue - OldMin) * NewRange) / OldRange) + NewMin
-        area_covered_inputs[8] = (area_covered_inputs[8] * 0.3) + 0.6
+        area_covered_inputs[8] = (area_covered_inputs[8] * 0.3) + 0.7
         root_area_systems.append(createAdvancedRootSystem(area_covered_inputs))
 
         energy_spent.append(drawer.drawSystem(root_systems[index], None, True, False) * 2)
